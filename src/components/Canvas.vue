@@ -74,7 +74,6 @@ export default Vue.extend({
 <style lang="scss">
 
     .board {
-        width: 100vw;
         display: flex;
         flex-wrap: wrap;
         margin: 100px 10vw 0 10vw;
@@ -85,6 +84,7 @@ export default Vue.extend({
     }
 
     .introduction {
+        min-width: 400px;
 
         .introduction-text {
             width: 70%;
