@@ -1,11 +1,12 @@
 <template>
     <div>
-        <vue-p5 @setup="setup"></vue-p5>
+        <vue-p5 @setup="setup"/>
         <div class="board">
             <section class="introduction">
                 <div class="introduction-text">
                     <h1 class="introduction-title">BrewDog generator</h1>
-                    <p class="introduction-description">A decade ago there was a revolution. A beer revolution.
+                    <p class="introduction-description">
+                        A decade ago there was a revolution. A beer revolution.
                         Punk IPA is the beer that kick-started it. This light,
                         golden classic has been subverted with new world hops to
                         create an explosion of flavour. Bursts of caramel and tropical
@@ -19,6 +20,13 @@
                 <article v-for="beer of beers">
                     <div class="beer-name">{{ beer.name }}</div>
                     <div class="beer-description">{{ beer.tagline }}</div>
+                    <ul>
+                        <li>Color: {{ beer.ebc }}</li>
+                        <li>Sugar: {{ beer.target_fg }}</li>
+                        <li>Acidity: {{ beer.ph }}</li>
+                        <li>Alcohol: {{ beer.abv }}</li>
+                        <li>Bitter: {{ beer.ibu }}</li>
+                    </ul>
                 </article>
             </section>
         </div>
@@ -35,6 +43,9 @@ interface Options {
     noStroke: () => void;
     fill: (...args: number[]) => void;
     rect: (...args: number[]) => void;
+    angleMode: (...args: number[]) => void;
+    color: (...args: any) => number;
+    DEGREES: any;
 }
 
 export default Vue.extend({
@@ -47,24 +58,47 @@ export default Vue.extend({
         width: 300,
         height: 300,
         beers: [],
+        bitters: [],
       };
   },
   mounted() {
       fetch('https://api.punkapi.com/v2/beers')
         .then((data) => data.json())
         .then((res) => {
-            this.beers = res;
-            console.log(this.beers)
+            (this as any).beers = res;
         });
   },
-  methods: {
-    setup(sketch: Options) {
-      sketch.createCanvas(window.innerWidth, window.innerHeight/3);
-      sketch.noStroke(); // No outline stroke
-      sketch.fill(237, 0, 62); // Fill color
-      sketch.circle(200, 30, this.width);
-    },
+  updated(): void {
+      (this as any).beers.map((beer: { ibu: number; }) => {
+          (this as any).bitters.push(beer.ibu);
+      });
   },
+    methods: {
+      setup(sketch: Options) {
+          sketch.createCanvas(window.innerWidth, window.innerHeight / 3);
+          sketch.noStroke(); // No outline stroke
+          //let randomHue = ;
+          //console.log(randomHue)
+          const test = sketch.color(`hsb(20, 100%, 50%)`);
+          sketch.fill(test);
+          sketch.angleMode(sketch.DEGREES);
+          (this as any).drawGrid(sketch);
+          // sketch.filter(sketch.BLUR, 3)
+          //sketch.angleMode(sketch.DEGREES);
+      },
+      drawGrid(sketch: Options) {
+          for (let i = 0; i < window.innerWidth; i += 100) { // col
+              for (let j = 0; j < window.innerHeight; j += 100) { // row
+                  //sketch.push() // Save the following lines
+                  //sketch.translate(i + 25, j + 25); // Change canvas origin
+                  //sketch.rotate(sketch.PI/3.0) // rotate
+                  sketch.rect(i, j, 50, 50, 50);
+                  //sketch.pop() // Remove ref
+              }
+          }
+      },
+  },
+
   render(h) {
     return h(VueP5, {on: this});
   },
@@ -76,7 +110,7 @@ export default Vue.extend({
     .board {
         display: flex;
         flex-wrap: wrap;
-        margin: 100px 10vw 0 10vw;
+        margin: 100px 10vw;
     }
 
     section {
@@ -128,15 +162,18 @@ export default Vue.extend({
         }
     }
 </style>
+
 <!--
+
 Variables
-Date 1e brassage (1st brewed)
-pH (faible si acide)
-Grammes de houblon (hops)
-Grammes de levure (yeast)
-Grammes de mat (malt)
-Amereté (IBU de 5 à 120)
-Degré (ABV)
-Couleur (EBC === SRM*2)
-Dose finale de sucre (FG de 1000 à 1060 )
+acidité (pH faible si acide):   border-radius
+amertume (IBU de 5 à 120):      saturation
+degré (ABV):                    flou
+Sucre (FG de 1000 à 1060):      tremblement/entropie
+couleur (EBC === SRM*2):        couleur
+
+- Comment rotate un élément ?
+- Comment concaténer dans hsb
+- Entropie avec valeur entre petit random ?
+
 -->
