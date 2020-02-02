@@ -5,11 +5,71 @@
           @draw="draw"
         />
         <div class="q-pa-md">
+            <q-badge color="purple">
+                Acidity:
+                <span v-if="quantities.acidity <= -20">Low</span>
+                <span v-else-if="quantities.acidity > -20 && quantities.acidity <= -10">Medium</span>
+                <span v-else>High</span>
+            </q-badge>
+
+            <q-slider
+              @input="result(sketchSaved)"
+              v-model="quantities.acidity"
+              :min="-30"
+              :max="0"
+              :step="1"
+              snap
+              label
+              color="purple"
+            />
+        </div>
+
+        <div class="q-pa-md">
             <q-badge color="blue">
+                Bitter:
+                <span v-if="quantities.bitter <= 40">Low</span>
+                <span v-else-if="quantities.bitter > 40 && quantities.bitter <= 70">Medium</span>
+                <span v-else>High</span>
+            </q-badge>
+
+            <q-slider
+              @input="result(sketchSaved)"
+              v-model="quantities.bitter"
+              :min="0"
+              :max="100"
+              :step="10"
+              snap
+              label
+              color="blue"
+            />
+        </div>
+
+        <div class="q-pa-md">
+            <q-badge color="red">
+                Alcohol:
+                <span v-if="quantities.alcohol <= 4">Low</span>
+                <span v-else-if="quantities.alcohol > 4 && quantities.alcohol <= 8">Medium</span>
+                <span v-else>High</span>
+            </q-badge>
+
+            <q-slider
+              @input="result(sketchSaved)"
+              v-model="quantities.alcohol"
+              :min="0"
+              :max="30"
+              :step="1"
+              snap
+              label
+              color="red"
+            />
+        </div>
+
+        <div class="q-pa-md">
+            <q-badge color="red">
                 Sugar:
-                <span v-if="quantities.sugar === 10">Low</span>
-                <span v-if="quantities.sugar === 20">Medium</span>
-                <span v-if="quantities.sugar === 30">High</span>
+                <span v-if="quantities.sugar <= 4">Low</span>
+                <span v-else-if="quantities.alcohol > 4 && quantities.alcohol <= 8">Medium</span>
+                <span v-else>High</span>
             </q-badge>
 
             <q-slider
@@ -17,13 +77,13 @@
               v-model="quantities.sugar"
               :min="0"
               :max="30"
-              :step="10"
+              :step="1"
               snap
               label
-              label-always
-              color="purple"
+              color="red"
             />
         </div>
+
         <div class="board">
             <section class="introduction">
                 <div class="introduction-text">
@@ -74,6 +134,7 @@ interface Options {
     clear: () => void;
     createButton: (arg0: string) => void;
     button: any;
+    abs: (arg0: number) => number;
 }
 
 export default Vue.extend({
@@ -89,7 +150,10 @@ export default Vue.extend({
         beers: [],
         bitters: [],
         quantities: {
-            sugar: 0
+            acidity: -30,
+            bitter: 5,
+            alcohol: 0,
+            sugar: 0,
         }
       };
   },
@@ -112,27 +176,23 @@ export default Vue.extend({
           sketch.noStroke(); // No outline stroke
           //let randomHue = ;
           //console.log(randomHue)
-          const test = sketch.color(`hsb(20, 100%, 50%)`);
-          sketch.fill(test);
           sketch.angleMode(sketch.DEGREES);
           sketch.noLoop();
-          // button.mousePressed(sketch.result)
-
-          // sketch.filter(sketch.BLUR, 3)
           //sketch.angleMode(sketch.DEGREES);
       },
       draw(sketch: Options) {
+          const color = sketch.color(`hsb(20, ${(this as any).quantities.bitter}%, 50%)`);
+          sketch.fill(color);
           for (let i = 0; i < window.innerWidth; i += 100) { // col
-              for (let j = 0; j < window.innerHeight; j += 100) { // row
+              for (let j = 0; j < window.innerHeight / 3; j += 100) { // row
                   //sketch.push() // Save the following lines
                   //sketch.translate(i + 25, j + 25); // Change canvas origin
                   //sketch.rotate(sketch.PI/3.0) // rotate
-                  sketch.rect(i, j, 50, 50, (this as any).quantities.sugar);
+                  sketch.rect(i, j, 50, 50, sketch.abs((this as any).quantities.acidity));
                   //sketch.pop() // Remove ref
               }
           }
-          // (this as any).quantities.sugar += 10;
-          // console.log((this as any).quantities.sugar)
+          // sketch.filter(sketch.BLUR, (this as any).quantities.alcohol);
       },
       result(sketchSaved: any) {
           sketchSaved.clear();
