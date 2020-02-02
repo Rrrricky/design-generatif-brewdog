@@ -1,6 +1,29 @@
 <template>
     <div>
-        <vue-p5 @setup="setup"/>
+        <vue-p5
+          @setup="setup"
+          @draw="draw"
+        />
+        <div class="q-pa-md">
+            <q-badge color="blue">
+                Sugar:
+                <span v-if="quantities.sugar === 10">Low</span>
+                <span v-if="quantities.sugar === 20">Medium</span>
+                <span v-if="quantities.sugar === 30">High</span>
+            </q-badge>
+
+            <q-slider
+              @input="result(sketchSaved)"
+              v-model="quantities.sugar"
+              :min="0"
+              :max="30"
+              :step="10"
+              snap
+              label
+              label-always
+              color="purple"
+            />
+        </div>
         <div class="board">
             <section class="introduction">
                 <div class="introduction-text">
@@ -46,6 +69,11 @@ interface Options {
     angleMode: (...args: number[]) => void;
     color: (...args: any) => number;
     DEGREES: any;
+    noLoop: () => void;
+    redraw: () => void;
+    clear: () => void;
+    createButton: (arg0: string) => void;
+    button: any;
 }
 
 export default Vue.extend({
@@ -55,10 +83,14 @@ export default Vue.extend({
   },
   data() {
       return {
+        sketchSaved: {},
         width: 300,
         height: 300,
         beers: [],
         bitters: [],
+        quantities: {
+            sugar: 0
+        }
       };
   },
   mounted() {
@@ -75,6 +107,7 @@ export default Vue.extend({
   },
     methods: {
       setup(sketch: Options) {
+          this.sketchSaved = sketch;
           sketch.createCanvas(window.innerWidth, window.innerHeight / 3);
           sketch.noStroke(); // No outline stroke
           //let randomHue = ;
@@ -82,21 +115,29 @@ export default Vue.extend({
           const test = sketch.color(`hsb(20, 100%, 50%)`);
           sketch.fill(test);
           sketch.angleMode(sketch.DEGREES);
-          (this as any).drawGrid(sketch);
+          sketch.noLoop();
+          // button.mousePressed(sketch.result)
+
           // sketch.filter(sketch.BLUR, 3)
           //sketch.angleMode(sketch.DEGREES);
       },
-      drawGrid(sketch: Options) {
+      draw(sketch: Options) {
           for (let i = 0; i < window.innerWidth; i += 100) { // col
               for (let j = 0; j < window.innerHeight; j += 100) { // row
                   //sketch.push() // Save the following lines
                   //sketch.translate(i + 25, j + 25); // Change canvas origin
                   //sketch.rotate(sketch.PI/3.0) // rotate
-                  sketch.rect(i, j, 50, 50, 50);
+                  sketch.rect(i, j, 50, 50, (this as any).quantities.sugar);
                   //sketch.pop() // Remove ref
               }
           }
+          // (this as any).quantities.sugar += 10;
+          // console.log((this as any).quantities.sugar)
       },
+      result(sketchSaved: any) {
+          sketchSaved.clear();
+          sketchSaved.redraw();
+      }
   },
 
   render(h) {
@@ -160,6 +201,10 @@ export default Vue.extend({
             font-size: 10px;
             color: #666;
         }
+    }
+    .q-pa-md {
+        width: 50vw;
+        margin: 0 auto;
     }
 </style>
 
