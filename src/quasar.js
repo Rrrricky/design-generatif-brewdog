@@ -19,6 +19,11 @@ import {
   QItemLabel,
   QBadge,
   QSlider,
+  QDialog,
+  QCard,
+  QCardActions,
+  QCardSection,
+  ClosePopup,
 } from 'quasar'
 
 Vue.use(Quasar, {
@@ -39,8 +44,13 @@ Vue.use(Quasar, {
     QItemLabel,
     QBadge,
     QSlider,
+    QDialog,
+    QCard,
+    QCardActions,
+    QCardSection,
   },
   directives: {
+    ClosePopup
   },
   plugins: {
   }

@@ -7,17 +7,17 @@
         <div class="q-pa-md">
             <q-badge color="purple">
                 Acidity:
-                <span v-if="quantities.acidity <= -20">Low</span>
-                <span v-else-if="quantities.acidity > -20 && quantities.acidity <= -10">Medium</span>
+                <span v-if="quantities.acidity <= 4">Low</span>
+                <span v-else-if="quantities.acidity > 4 && quantities.acidity <= 5">Medium</span>
                 <span v-else>High</span>
             </q-badge>
 
             <q-slider
               @input="result(sketchSaved)"
               v-model="quantities.acidity"
-              :min="-30"
-              :max="0"
-              :step="1"
+              :min="3"
+              :max="6"
+              :step=".5"
               snap
               label
               color="purple"
@@ -82,6 +82,24 @@
               label
               color="red"
             />
+        </div>
+
+        <q-dialog v-model="alert">
+            <q-card>
+                <q-card-section>
+                    <div class="text-h6">Alert</div>
+                </q-card-section>
+                <q-card-section class="q-pt-none">
+                    Here is the beer you need: <span class="beer-name">{{selectedBeer}}</span>
+                </q-card-section>
+                <q-card-actions align="right">
+                    <q-btn flat label="OK" color="primary" v-close-popup />
+                </q-card-actions>
+            </q-card>
+        </q-dialog>
+
+        <div class="button" @click="findBeer">
+            Gimme my beer
         </div>
 
         <div class="board">
@@ -149,12 +167,14 @@ export default Vue.extend({
         height: 300,
         beers: [],
         bitters: [],
+        alert: false,
         quantities: {
-            acidity: -30,
+            acidity: 3,
             bitter: 5,
             alcohol: 0,
             sugar: 0,
-        }
+        },
+        selectedBeer: '',
       };
   },
   mounted() {
@@ -171,7 +191,7 @@ export default Vue.extend({
   },
     methods: {
       setup(sketch: Options) {
-          this.sketchSaved = sketch;
+          (this as any).sketchSaved = sketch;
           sketch.createCanvas(window.innerWidth, window.innerHeight / 3);
           sketch.noStroke(); // No outline stroke
           //let randomHue = ;
@@ -181,14 +201,14 @@ export default Vue.extend({
           //sketch.angleMode(sketch.DEGREES);
       },
       draw(sketch: Options) {
-          const color = sketch.color(`hsb(20, ${(this as any).quantities.bitter}%, 50%)`);
+          const color = sketch.color(`hsb(44, ${(this as any).quantities.bitter}%, 97%)`);
           sketch.fill(color);
           for (let i = 0; i < window.innerWidth; i += 100) { // col
               for (let j = 0; j < window.innerHeight / 3; j += 100) { // row
                   //sketch.push() // Save the following lines
                   //sketch.translate(i + 25, j + 25); // Change canvas origin
                   //sketch.rotate(sketch.PI/3.0) // rotate
-                  sketch.rect(i, j, 50, 50, sketch.abs((this as any).quantities.acidity));
+                  sketch.rect(i, j, 50, 50, sketch.abs((this as any).quantities.acidity-3)*10);
                   //sketch.pop() // Remove ref
               }
           }
@@ -197,7 +217,16 @@ export default Vue.extend({
       result(sketchSaved: any) {
           sketchSaved.clear();
           sketchSaved.redraw();
-      }
+      },
+      findBeer() {
+          let beer = (this as any).beers.filter(beer => beer.ph > (this as any).quantities.acidity - .5 && beer.ph < (this as any).quantities.acidity + .5);
+          if(beer.length > 1) {
+              beer = beer.filter(beer => beer.ibu > (this as any).quantities.bitter - 40 && beer.ibu < (this as any).quantities.bitter + 40);
+          }
+          console.log(beer);
+          (this as any).selectedBeer = beer[0].name;
+          (this as any).alert = true;
+      },
   },
 
   render(h) {
@@ -262,9 +291,25 @@ export default Vue.extend({
             color: #666;
         }
     }
+
+    .q-card {
+        color: #171717;
+
+        .beer-name {
+            font-weight: bold;
+        }
+    }
+
     .q-pa-md {
         width: 50vw;
         margin: 0 auto;
+    }
+
+    .button {
+        display: inline-block;
+        border: 1px solid white;
+        padding: 5px;
+        cursor: pointer;
     }
 </style>
 
