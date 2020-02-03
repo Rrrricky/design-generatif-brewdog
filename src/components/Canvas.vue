@@ -4,103 +4,108 @@
           @setup="setup"
           @draw="draw"
         />
-        <div class="q-pa-md">
-            <q-badge color="purple">
-                Acidity:
-                <span v-if="quantities.acidity <= 4">Low</span>
-                <span v-else-if="quantities.acidity > 4 && quantities.acidity <= 5">Medium</span>
-                <span v-else>High</span>
-            </q-badge>
+        <div class="cursors">
+            <div class="q-pa-md">
+                <q-badge color="purple">
+                    pH:
+                    <span v-if="quantities.acidity <= 4">Low</span>
+                    <span v-else-if="quantities.acidity > 4 && quantities.acidity <= 5">Medium</span>
+                    <span v-else>High</span>
+                </q-badge>
 
-            <q-slider
-              @input="result(sketchSaved)"
-              v-model="quantities.acidity"
-              :min="3"
-              :max="6"
-              :step=".5"
-              snap
-              label
-              color="purple"
-            />
+                <q-slider
+                  @input="result(sketchSaved)"
+                  v-model="quantities.acidity"
+                  :min="3"
+                  :max="6"
+                  :step=".5"
+                  snap
+                  color="purple"
+                />
+            </div>
+            <div class="q-pa-md">
+                <q-badge color="blue">
+                    Bitter:
+                    <span v-if="quantities.bitter <= 40">Low</span>
+                    <span v-else-if="quantities.bitter > 40 && quantities.bitter <= 70">Medium</span>
+                    <span v-else>High</span>
+                </q-badge>
+
+                <q-slider
+                  @input="result(sketchSaved)"
+                  v-model="quantities.bitter"
+                  :min="0"
+                  :max="100"
+                  :step="10"
+                  snap
+                  color="blue"
+                />
+            </div>
+
+            <div class="q-pa-md">
+                <q-badge color="pink-4">
+                    Alcohol:
+                    <span v-if="quantities.alcohol <= 6">Low</span>
+                    <span v-else-if="quantities.alcohol > 6 && quantities.alcohol <= 10">Medium</span>
+                    <span v-else>High</span>
+                </q-badge>
+
+                <q-slider
+                  @input="result(sketchSaved)"
+                  v-model="quantities.alcohol"
+                  :min="4"
+                  :max="15"
+                  :step="1"
+                  snap
+                  color="pink-4"
+                />
+            </div>
+
+            <div class="q-pa-md">
+                <q-badge color="red">
+                    Sugar:
+                    <span v-if="quantities.sugar <= 300">Low</span>
+                    <span v-else-if="quantities.sugar > 300 && quantities.sugar <= 800">Medium</span>
+                    <span v-else>High</span>
+                </q-badge>
+
+                <q-slider
+                  @input="result(sketchSaved)"
+                  v-model="quantities.sugar"
+                  :min="1000"
+                  :max="1060"
+                  :step="1"
+                  snap
+                  color="red"
+                />
+            </div>
+            <q-dialog v-model="alert">
+                <q-card>
+                    <q-card-section>
+                        <div class="text-h6">Your beer</div>
+                    </q-card-section>
+                    <q-card-section class="q-pt-none" v-if="typeof(selectedBeers) === 'object'">
+                        <div v-for="selectedBeer of selectedBeers">
+                            <div class="beer-name">{{selectedBeer.name}}</div>
+                            <div>{{selectedBeer.description}}</div>
+                        </div>
+                    </q-card-section>
+                    <q-card-section class="q-pt-none" v-if="typeof(selectedBeers) === 'string'">
+                        <div class="beer-name">Oops!</div>
+                        <div>{{selectedBeers}}</div>
+                    </q-card-section>
+                    <q-card-actions align="right">
+                        <q-btn flat label="OK" color="primary" v-close-popup />
+                    </q-card-actions>
+                </q-card>
+            </q-dialog>
+
+            <div class="button" @click="findBeer">
+                Gimme my beers
+            </div>
         </div>
 
-        <div class="q-pa-md">
-            <q-badge color="blue">
-                Bitter:
-                <span v-if="quantities.bitter <= 40">Low</span>
-                <span v-else-if="quantities.bitter > 40 && quantities.bitter <= 70">Medium</span>
-                <span v-else>High</span>
-            </q-badge>
 
-            <q-slider
-              @input="result(sketchSaved)"
-              v-model="quantities.bitter"
-              :min="0"
-              :max="100"
-              :step="10"
-              snap
-              label
-              color="blue"
-            />
-        </div>
-
-        <div class="q-pa-md">
-            <q-badge color="red">
-                Alcohol:
-                <span v-if="quantities.alcohol <= 4">Low</span>
-                <span v-else-if="quantities.alcohol > 4 && quantities.alcohol <= 8">Medium</span>
-                <span v-else>High</span>
-            </q-badge>
-
-            <q-slider
-              @input="result(sketchSaved)"
-              v-model="quantities.alcohol"
-              :min="0"
-              :max="30"
-              :step="1"
-              snap
-              label
-              color="red"
-            />
-        </div>
-
-        <div class="q-pa-md">
-            <q-badge color="red">
-                Sugar:
-                <span v-if="quantities.sugar <= 4">Low</span>
-                <span v-else-if="quantities.alcohol > 4 && quantities.alcohol <= 8">Medium</span>
-                <span v-else>High</span>
-            </q-badge>
-
-            <q-slider
-              @input="result(sketchSaved)"
-              v-model="quantities.sugar"
-              :min="0"
-              :max="30"
-              :step="1"
-              snap
-              label
-              color="red"
-            />
-        </div>
-
-        <q-dialog v-model="alert">
-            <q-card>
-                <q-card-section>
-                    <div class="text-h6">Alert</div>
-                </q-card-section>
-                <q-card-section class="q-pt-none">
-                    Here is the beer you need: <span class="beer-name">{{selectedBeer}}</span>
-                </q-card-section>
-                <q-card-actions align="right">
-                    <q-btn flat label="OK" color="primary" v-close-popup />
-                </q-card-actions>
-            </q-card>
-        </q-dialog>
-
-        <div class="button" @click="findBeer">
-            Gimme my beer
-        </div>
 
         <div class="board">
             <section class="introduction">
@@ -124,7 +129,7 @@
                     <ul>
                         <li>Color: {{ beer.ebc }}</li>
                         <li>Sugar: {{ beer.target_fg }}</li>
-                        <li>Acidity: {{ beer.ph }}</li>
+                        <li>pH: {{ beer.ph }}</li>
                         <li>Alcohol: {{ beer.abv }}</li>
                         <li>Bitter: {{ beer.ibu }}</li>
                     </ul>
@@ -137,7 +142,6 @@
 <script lang="ts">
 import VueP5 from 'vue-p5';
 import Vue from 'vue';
-
 
 interface Options {
     createCanvas: (...args: any) => void;
@@ -153,6 +157,9 @@ interface Options {
     createButton: (arg0: string) => void;
     button: any;
     abs: (arg0: number) => number;
+    random: (arg0: number) => number;
+    rotate: (arg0: number) => void;
+    PI: number;
 }
 
 export default Vue.extend({
@@ -170,11 +177,11 @@ export default Vue.extend({
         alert: false,
         quantities: {
             acidity: 3,
-            bitter: 5,
-            alcohol: 0,
-            sugar: 0,
+            bitter: 0,
+            alcohol: 4,
+            sugar: 1000,
         },
-        selectedBeer: '',
+        selectedBeers: '',
       };
   },
   mounted() {
@@ -192,43 +199,46 @@ export default Vue.extend({
     methods: {
       setup(sketch: Options) {
           (this as any).sketchSaved = sketch;
-          sketch.createCanvas(window.innerWidth, window.innerHeight / 3);
+          sketch.createCanvas(window.innerWidth, window.innerHeight / 2);
           sketch.noStroke(); // No outline stroke
-          //let randomHue = ;
-          //console.log(randomHue)
           sketch.angleMode(sketch.DEGREES);
           sketch.noLoop();
-          //sketch.angleMode(sketch.DEGREES);
       },
       draw(sketch: Options) {
           const color = sketch.color(`hsb(44, ${(this as any).quantities.bitter}%, 97%)`);
           sketch.fill(color);
           for (let i = 0; i < window.innerWidth; i += 100) { // col
-              for (let j = 0; j < window.innerHeight / 3; j += 100) { // row
-                  //sketch.push() // Save the following lines
-                  //sketch.translate(i + 25, j + 25); // Change canvas origin
-                  //sketch.rotate(sketch.PI/3.0) // rotate
-                  sketch.rect(i, j, 50, 50, sketch.abs((this as any).quantities.acidity-3)*10);
-                  //sketch.pop() // Remove ref
+              for (let j = 0; j < window.innerHeight / 2; j += 100) { // row
+                  sketch.rotate(sketch.PI / 3.0);
+                  sketch.rect(
+                    i + 10, // posx
+                    j - 10 * sketch.random((this as any).quantities.alcohol**2/4), // posy
+                    1080 - (this as any).quantities.sugar, // width
+                    50, // height
+                    sketch.abs((this as any).quantities.acidity - 3) * 10 // radius
+                  );
               }
           }
-          // sketch.filter(sketch.BLUR, (this as any).quantities.alcohol);
       },
       result(sketchSaved: any) {
           sketchSaved.clear();
           sketchSaved.redraw();
       },
       findBeer() {
-          let beer = (this as any).beers.filter(beer => beer.ph > (this as any).quantities.acidity - .5 && beer.ph < (this as any).quantities.acidity + .5);
-          if(beer.length > 1) {
-              beer = beer.filter(beer => beer.ibu > (this as any).quantities.bitter - 40 && beer.ibu < (this as any).quantities.bitter + 40);
+          let beer = (this as any).beers.filter((beer: {abv: number; }) => (beer.abv > (this as any).quantities.alcohol - 2 && beer.abv < (this as any).quantities.alcohol + 2));
+          if (beer.length > 1) {
+              beer = beer.filter((beer: { target_fg: number; }) => beer.target_fg > (this as any).quantities.sugar  - 30 && beer.target_fg < (this as any).quantities.sugar + 30);
           }
-          console.log(beer);
-          (this as any).selectedBeer = beer[0].name;
+          if (beer.length > 1) {
+              beer = beer.filter((beer: { ph: number; }) => beer.ph > (this as any).quantities.acidity - 1 && beer.ph < (this as any).quantities.acidity + 2);
+          }
+          if (beer.length > 1) {
+              beer = beer.filter((beer: { ibu: number; }) => beer.ibu > (this as any).quantities.bitter - 25 && beer.ibu < (this as any).quantities.bitter + 25);
+          }
+          beer.length === 0 ? (this as any).selectedBeers = 'This kinda beer would be messed up... Try something else!' : (this as any).selectedBeers = beer;
           (this as any).alert = true;
       },
   },
-
   render(h) {
     return h(VueP5, {on: this});
   },
@@ -292,6 +302,12 @@ export default Vue.extend({
         }
     }
 
+    .cursors {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+    }
+
     .q-card {
         color: #171717;
 
@@ -301,15 +317,23 @@ export default Vue.extend({
     }
 
     .q-pa-md {
-        width: 50vw;
+        padding: 0 16px 0 0 !important;
+        width: 25vw;
         margin: 0 auto;
     }
 
     .button {
+        color: white;
+        background: #f8b400;
         display: inline-block;
-        border: 1px solid white;
-        padding: 5px;
+        border-radius: 3px;
+        padding: 8px;
         cursor: pointer;
+        transition: transform .2s;
+
+        &:hover {
+            transform: translateY(-2px);
+        }
     }
 </style>
 
