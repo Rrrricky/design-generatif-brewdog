@@ -30,10 +30,10 @@
     },
     methods: {
       customDrag() {
-        this.$emit('custom-input')
-      }
-    }
-  }
+        this.$emit('custom-input');
+      },
+    },
+  };
 </script>
 
 <style lang="scss">

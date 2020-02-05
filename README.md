@@ -27,3 +27,11 @@ yarn run lint
 
 ### Customize configuration
 See [Configuration Reference](https://cli.vuejs.org/config/).
+
+
+
+## Variables
+- Acidity (-7 to 7): border-radius
+- Bitter (5 to 120): saturation
+- Alcohol (ABV): entropy
+- Sucre (1000 to 1060): width

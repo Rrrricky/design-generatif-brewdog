@@ -12,7 +12,7 @@
             <section class="introduction">
                 <div class="introduction-text">
                     <h1 class="text-h1 introduction-title">BrewDog generator</h1>
-                    <p class="introduction-description">
+                    <p class="introduction-description text-weight-light">
                         A decade ago there was a revolution. A beer revolution.
                         Punk IPA is the beer that kick-started it. This light,
                         golden classic has been subverted with new world hops to
@@ -93,21 +93,21 @@ export default Vue.extend({
                     min: 4,
                     max: 15,
                     step: 1,
-                }
+                },
             },
             sugar: {
                 name: 'sugar',
                 color: 'red',
                 limits: {
-                    medium: 300,
-                    high: 800,
+                    medium: 1030,
+                    high: 1050,
                 },
                 sliderValues: {
                     value: 1000,
                     min: 1000,
                     max: 1060,
                     step: 1,
-                }
+                },
             },
             acidity: {
                 name: 'pH',
@@ -121,7 +121,7 @@ export default Vue.extend({
                     min: 3,
                     max: 6,
                     step: .5,
-                }
+                },
             },
             bitter: {
                 name: 'bitter',
@@ -135,8 +135,8 @@ export default Vue.extend({
                     min: 0,
                     max: 100,
                     step: 10,
-                }
-            }
+                },
+            },
         },
         selectedBeers: '',
       };
@@ -147,6 +147,9 @@ export default Vue.extend({
         .then((res) => {
             (this as any).beers = res;
         });
+      window.addEventListener('resize', () => {
+          (this as any).result((this as any).sketchSaved);
+      });
   },
   updated(): void {
       (this as any).beers.map((beer: { ibu: number; }) => {
@@ -169,37 +172,45 @@ export default Vue.extend({
                   sketch.rotate(sketch.PI / 3.0);
                   sketch.rect(
                     i + 10, // posx
-                    j - 10 * sketch.random((this as any).beerSpecs.alcohol.sliderValues.value**2 / 4), // posy
+                    j - 10 * sketch.random((this as any).beerSpecs.alcohol.sliderValues.value ** 2 / 4), // posy
                     1080 - (this as any).beerSpecs.sugar.sliderValues.value, // width
                     50, // height
-                    sketch.abs((this as any).beerSpecs.acidity.sliderValues.value - 3) * 10 // radius
+                    sketch.abs((this as any).beerSpecs.acidity.sliderValues.value - 3) * 10, // radius
                   );
               }
           }
       },
       result(sketchSaved: any) {
           sketchSaved.clear();
+          sketchSaved.createCanvas(window.innerWidth, window.innerHeight / 2);
+          sketchSaved.canvas.style.width = '100vw';
           sketchSaved.redraw();
       },
       findBeer() {
           // Filter by abv
-          let beer = (this as any).beers.filter((beer: {abv: number; }) => (beer.abv > (this as any).beerSpecs.alcohol.sliderValues.value - 2 && beer.abv < (this as any).beerSpecs.alcohol.sliderValues.value + 2));
+          let beerResult = (this as any).beers
+            // tslint:disable-next-line:max-line-length
+            .filter((beer: {abv: number; }) => beer.abv > (this as any).beerSpecs.alcohol.sliderValues.value - 2 && beer.abv < (this as any).beerSpecs.alcohol.sliderValues.value + 2);
 
           // Then filter by fg
-          if (beer.length > 1) {
-              beer = beer.filter((beer: { target_fg: number; }) => beer.target_fg > (this as any).beerSpecs.sugar.sliderValues.value  - 30 && beer.target_fg < (this as any).beerSpecs.sugar.sliderValues.value + 30);
+          if (beerResult.length > 1) {
+              // tslint:disable-next-line:max-line-length
+              beerResult = beerResult.filter((beer: { target_fg: number; }) => beer.target_fg > (this as any).beerSpecs.sugar.sliderValues.value  - 30 && beer.target_fg < (this as any).beerSpecs.sugar.sliderValues.value + 30);
           }
 
           // Then filter by pH
-          if (beer.length > 1) {
-              beer = beer.filter((beer: { ph: number; }) => beer.ph > (this as any).beerSpecs.acidity.sliderValues.value - 1 && beer.ph < (this as any).beerSpecs.acidity.sliderValues.value + 2);
+          if (beerResult.length > 1) {
+              // tslint:disable-next-line:max-line-length
+              beerResult = beerResult.filter((beer: { ph: number; }) => beer.ph > (this as any).beerSpecs.acidity.sliderValues.value - 1 && beer.ph < (this as any).beerSpecs.acidity.sliderValues.value + 2);
           }
 
           // Then filter by bitter
-          if (beer.length > 1) {
-              beer = beer.filter((beer: { ibu: number; }) => beer.ibu > (this as any).beerSpecs.bitter.sliderValues.value - 25 && beer.ibu < (this as any).beerSpecs.bitter.sliderValues.value + 25);
+          if (beerResult.length > 1) {
+              // tslint:disable-next-line:max-line-length
+              beerResult = beerResult.filter((beer: { ibu: number; }) => beer.ibu > (this as any).beerSpecs.bitter.sliderValues.value - 25 && beer.ibu < (this as any).beerSpecs.bitter.sliderValues.value + 25);
           }
-          beer.length === 0 ? (this as any).selectedBeers = 'This kinda beer would be messed up... Try something else!' : (this as any).selectedBeers = beer;
+          // tslint:disable-next-line:max-line-length
+          beerResult.length === 0 ? (this as any).selectedBeers = 'This kinda beer would be messed up... Try something else!' : (this as any).selectedBeers = beerResult;
       },
   },
   render(h) {
@@ -213,28 +224,20 @@ export default Vue.extend({
     @import '~quasar-styl';
 
     .board {
-        display: flex;
-        flex-wrap: wrap;
         margin: 100px 10vw;
     }
 
-    section {
-        width: 40vw;
-    }
-
     .introduction {
-        min-width: 400px;
+        width: 100%;
 
         .introduction-text {
-            width: 70%;
+            width: 50%;
 
             .introduction-title {
                 font-family: League;
                 text-transform: uppercase;
             }
-
             .introduction-description {
-                font-size: 12px;
                 color: #999;
                 line-height: 1.6;
             }
@@ -245,6 +248,7 @@ export default Vue.extend({
         display: flex;
         justify-content: space-between;
         flex-wrap: wrap;
+        margin-top: 150px;
     }
 
     article {
@@ -266,18 +270,3 @@ export default Vue.extend({
         }
     }
 </style>
-
-<!--
-
-Variables
-acidité (pH faible si acide):   border-radius
-amertume (IBU de 5 à 120):      saturation
-degré (ABV):                    flou
-Sucre (FG de 1000 à 1060):      tremblement/entropie
-couleur (EBC === SRM*2):        couleur
-
-- Comment rotate un élément ?
-- Comment concaténer dans hsb
-- Entropie avec valeur entre petit random ?
-
--->

@@ -20,8 +20,6 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
-
-
     <q-btn label="Gimme my beer" color="primary" @click="findBeer" />
     <q-dialog v-model="icon">
       <q-card v-if="typeof(selectedBeers) === 'object'">
@@ -52,21 +50,21 @@
   export default {
     name: 'Dialog',
     props: {
-      selectedBeers: Object | String,
+      selectedBeers: Object || String,
     },
     data() {
       return {
         myAlert: this.alert,
         icon: false,
-      }
+      };
     },
     methods: {
       findBeer() {
-        this.$emit('find-beer')
-        this.icon = true
+        this.$emit('find-beer');
+        this.icon = true;
       },
-    }
-  }
+    },
+  };
 </script>
 
 <style lang="scss" scoped>

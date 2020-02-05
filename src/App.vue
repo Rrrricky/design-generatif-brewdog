@@ -34,9 +34,11 @@ export default Vue.extend({
     color: #ededed;
     height:100vh;
     font-family: Roboto;
+    overflow-x: hidden;
   }
 
   #defaultCanvas0 {
+    width: 100vw;
     margin: 0 auto;
     position: relative;
     display: block !important;

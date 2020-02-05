@@ -3,7 +3,7 @@ import Vue from 'vue'
 import './styles/quasar.scss'
 import '@quasar/extras/material-icons/material-icons.css'
 import {
-  Quasar, 
+  Quasar,
   QLayout,
   QHeader,
   QDrawer,
@@ -56,4 +56,4 @@ Vue.use(Quasar, {
   },
   plugins: {
   }
- })
+})
