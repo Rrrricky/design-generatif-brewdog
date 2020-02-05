@@ -1,0 +1,63 @@
+/*
+  Minor components (Login form, title)
+  Can be remove from the layout without breaking
+  Only classname
+  Don't add a parent selector to a module, name exceptions w/ proper sub-class
+*/
+
+
+/***
+ Introduction
+*/
+
+.introduction {
+    width: 100%;
+}
+
+.introduction-text {
+    width: 50%;
+
+    .introduction-title {
+        font-family: $league;
+        text-transform: uppercase;
+    }
+
+    .introduction-description {
+        color: $silver-chalice;
+        line-height: 1.6;
+    }
+}
+
+
+/***
+ List of beers
+*/
+
+.beers {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 15rem;
+    margin: -2rem;
+}
+
+.beer-card {
+    box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+    border-radius: 5px;
+    padding: 2em;
+    margin: 2rem;
+    line-height: 1.4;
+    font-size: 17px;
+    flex: 1 1 25%;
+    min-width: 250px;
+
+    .beer-name {
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 12px;
+    }
+
+    .beer-description {
+        font-size: 10px;
+        color: $silver-chalice;
+    }
+}

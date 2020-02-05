@@ -17,31 +17,5 @@ export default Vue.extend({
 </script>
 
 <style lang="scss">
-
-  @font-face {
-    font-family: "League";
-    src: url("./assets/fonts/league.otf")
-  }
-
-  h1 {
-    margin: 0;
-  }
-
-  body {
-    padding: 0;
-    margin: 0;
-    background-color: #171717;
-    color: #ededed;
-    height:100vh;
-    font-family: Roboto;
-    overflow-x: hidden;
-  }
-
-  #defaultCanvas0 {
-    width: 100vw;
-    margin: 0 auto;
-    position: relative;
-    display: block !important;
-    background: #fefefe;
-  }
+  @import './styles/app.scss';
 </style>

@@ -24,7 +24,7 @@
                 </div>
             </section>
             <section class="beers">
-                <article v-for="beer of beers">
+                <article class="beer-card" v-for="beer of beers">
                     <div class="beer-name">{{ beer.name }}</div>
                     <div class="beer-description">{{ beer.tagline }}</div>
                     <ul>
@@ -138,7 +138,7 @@ export default Vue.extend({
                 },
             },
         },
-        selectedBeers: '',
+        selectedBeers: null,
       };
   },
   mounted() {
@@ -220,53 +220,5 @@ export default Vue.extend({
 </script>
 
 <style lang="scss">
-
     @import '~quasar-styl';
-
-    .board {
-        margin: 100px 10vw;
-    }
-
-    .introduction {
-        width: 100%;
-
-        .introduction-text {
-            width: 50%;
-
-            .introduction-title {
-                font-family: League;
-                text-transform: uppercase;
-            }
-            .introduction-description {
-                color: #999;
-                line-height: 1.6;
-            }
-        }
-    }
-    
-    .beers {
-        display: flex;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        margin-top: 150px;
-    }
-
-    article {
-        width: 25%;
-        min-width: 200px;
-        border-radius: 10px;
-        padding-bottom: 8px;
-        line-height: 1.4;
-
-        .beer-name {
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 12px;
-        }
-
-        .beer-description {
-            font-size: 10px;
-            color: #666;
-        }
-    }
 </style>

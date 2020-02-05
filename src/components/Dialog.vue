@@ -50,7 +50,9 @@
   export default {
     name: 'Dialog',
     props: {
-      selectedBeers: Object || String,
+      selectedBeers: {
+        required: true,
+      },
     },
     data() {
       return {
