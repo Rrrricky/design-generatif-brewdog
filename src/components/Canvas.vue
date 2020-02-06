@@ -28,11 +28,10 @@
                     <div class="beer-name">{{ beer.name }}</div>
                     <div class="beer-description">{{ beer.tagline }}</div>
                     <ul>
-                        <li>Color: {{ beer.ebc }}</li>
                         <li>Sugar: {{ beer.target_fg }}</li>
                         <li>pH: {{ beer.ph }}</li>
-                        <li>Alcohol: {{ beer.abv }}</li>
-                        <li>Bitter: {{ beer.ibu }}</li>
+                        <li>Alcohol: {{ beer.abv }}%</li>
+                        <li>Bitter: {{ beer.ibu }} IBU</li>
                     </ul>
                 </article>
             </section>

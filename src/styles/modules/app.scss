@@ -17,9 +17,14 @@
 .introduction-text {
     width: 50%;
 
+    @include for-tablet-down {
+        width: 100%;
+    }
+
     .introduction-title {
         font-family: $league;
         text-transform: uppercase;
+        margin-bottom: 2rem;
     }
 
     .introduction-description {
@@ -34,21 +39,20 @@
 */
 
 .beers {
-    display: flex;
-    flex-wrap: wrap;
-    margin-top: 15rem;
-    margin: -2rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-gap: 5rem;
+    justify-content: space-between;
+    margin: 10rem 0;
 }
 
 .beer-card {
     box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
     border-radius: 5px;
     padding: 2em;
-    margin: 2rem;
     line-height: 1.4;
     font-size: 17px;
     flex: 1 1 25%;
-    min-width: 250px;
 
     .beer-name {
         cursor: pointer;
