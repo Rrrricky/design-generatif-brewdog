@@ -14,6 +14,7 @@ import {
   QCardSection,
   ClosePopup,
   QSpace,
+  QSelect,
 } from 'quasar'
 
 Vue.use(Quasar, {
@@ -28,6 +29,7 @@ Vue.use(Quasar, {
     QCardActions,
     QCardSection,
     QSpace,
+    QSelect,
   },
   directives: {
     ClosePopup

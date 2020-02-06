@@ -23,17 +23,24 @@
                     </p>
                 </div>
             </section>
-            <section class="beers">
-                <article class="beer-card" v-for="beer of beers">
-                    <div class="beer-name">{{ beer.name }}</div>
-                    <div class="beer-description">{{ beer.tagline }}</div>
-                    <ul>
-                        <li>Sugar: {{ beer.target_fg }}</li>
-                        <li>pH: {{ beer.ph }}</li>
-                        <li>Alcohol: {{ beer.abv }}%</li>
-                        <li>Bitter: {{ beer.ibu }} IBU</li>
-                    </ul>
-                </article>
+            <section class="listBeers">
+                <div class="q-pa-md dropdown-sort" style="max-width: 300px">
+                    <div class="q-gutter-md">
+                        <q-select v-model="model" :options="options" label="Sort by:" dark @input="sortedBeers(model)" />
+                    </div>
+                </div>
+                <div class="beers">
+                    <article class="beer-card" v-for="beer of beers">
+                        <div class="beer-name">{{ beer.name }}</div>
+                        <div class="beer-description">{{ beer.tagline }}</div>
+                        <ul>
+                            <li>Sugar: {{ beer.target_fg }}</li>
+                            <li>pH: {{ beer.ph }}</li>
+                            <li>Alcohol: {{ beer.abv }}%</li>
+                            <li>Bitter: {{ beer.ibu }} IBU</li>
+                        </ul>
+                    </article>
+                </div>
             </section>
         </div>
     </div>
@@ -138,6 +145,10 @@ export default Vue.extend({
             },
         },
         selectedBeers: null,
+        model: null,
+        options: [
+          'Alcohol', 'Sugar', 'Acidity', 'Bitter',
+        ],
       };
   },
   mounted() {
@@ -210,6 +221,9 @@ export default Vue.extend({
           }
           // tslint:disable-next-line:max-line-length
           beerResult.length === 0 ? (this as any).selectedBeers = 'This kinda beer would be messed up... Try something else!' : (this as any).selectedBeers = beerResult;
+      },
+      sortedBeers(value) {
+          (this as any).beers.sort((a: {abv: number}, b: {abv: number}) => a.abv - b.abv);
       },
   },
   render(h) {

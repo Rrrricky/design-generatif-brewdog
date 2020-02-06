@@ -38,12 +38,16 @@
  List of beers
 */
 
+.listBeers {
+    margin: 10rem 0;
+}
+
 .beers {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     grid-gap: 5rem;
     justify-content: space-between;
-    margin: 10rem 0;
+    margin: 5rem 0;
 
     @include for-large-mobile-down {
         margin: 7rem 0;
