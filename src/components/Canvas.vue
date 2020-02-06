@@ -46,7 +46,7 @@ import Sliders from './Sliders.vue';
 import Dialog from './Dialog.vue';
 
 interface Options {
-    createCanvas: (...args: any) => void;
+    createCanvas: (arg0: number, arg1: number) => void;
     noStroke: () => void;
     fill: (...args: number[]) => void;
     rect: (...args: number[]) => void;
