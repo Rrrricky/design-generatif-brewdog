@@ -44,6 +44,10 @@
     grid-gap: 5rem;
     justify-content: space-between;
     margin: 10rem 0;
+
+    @include for-large-mobile-down {
+        margin: 7rem 0;
+    }
 }
 
 .beer-card {
@@ -61,7 +65,65 @@
     }
 
     .beer-description {
-        font-size: 10px;
+        font-size: .6em;
         color: $silver-chalice;
     }
+}
+
+
+/**
+ Dialog
+*/
+
+.q-card {
+    color: $cod-gray;
+
+    .q-btn {
+      color: $silver-chalice;
+    }
+
+    .beer-description {
+      color: $silver-chalice;
+    }
+  }
+
+
+/**
+ Sliders
+*/
+.cursors {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+
+    @include for-tablet-down {
+        position: initial;
+        margin: 10vw;
+    }
+}
+
+div.q-pa-md {
+    padding: 0 1.6em 0 0;
+    width: 25vw;
+    margin: 0 auto;
+
+    @include for-tablet-down {
+        width: 50vw;
+        margin: 0 0 2rem 0;
+        padding: 0;
+    }
+    @include for-large-mobile-down {
+        width: 80vw;
+    }
+}
+
+.q-btn.q-btn-item {
+    @include for-large-mobile-down {
+        width: 100%;
+        margin-top: 5rem;
+    }
+}
+
+.q-slider__track-container.absolute {
+    background-color: rgba(120, 120, 120);
 }

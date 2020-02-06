@@ -35,17 +35,3 @@
     },
   };
 </script>
-
-<style lang="scss">
-  .cursors {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-  }
-
-  .q-pa-md {
-    padding: 0 16px 0 0 !important;
-    width: 25vw;
-    margin: 0 auto;
-  }
-</style>

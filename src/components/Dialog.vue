@@ -68,34 +68,3 @@
     },
   };
 </script>
-
-<style lang="scss" scoped>
-
-  .q-card {
-    color: #171717;
-
-    .q-btn {
-      color: #aaa;
-    }
-
-    .beer-description {
-      color: #555;
-    }
-  }
-
-  .button {
-    color: white;
-    background: #f8b400;
-    display: inline-block;
-    border-radius: 3px;
-    padding: 8px;
-    cursor: pointer;
-    transition: transform .2s;
-    box-shadow: 1px 1px 20px #dedede;
-
-    &:hover {
-      transform: translateY(-2px);
-    }
-  }
-
-</style>
