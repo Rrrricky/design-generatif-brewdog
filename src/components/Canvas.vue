@@ -80,6 +80,7 @@ export default Vue.extend({
   },
   data() {
       return {
+        ingredientSelected: '',
         sketchSaved: {},
         width: 300,
         height: 300,
@@ -89,6 +90,7 @@ export default Vue.extend({
         beerSpecs: {
             alcohol: {
                 name: 'alcohol',
+                unit: 'abv',
                 color: 'pink-4',
                 limits: {
                     medium: 6,
@@ -103,6 +105,7 @@ export default Vue.extend({
             },
             sugar: {
                 name: 'sugar',
+                unit: 'target_fg',
                 color: 'red',
                 limits: {
                     medium: 1030,
@@ -117,6 +120,7 @@ export default Vue.extend({
             },
             acidity: {
                 name: 'pH',
+                unit: 'ph',
                 color: 'purple',
                 limits: {
                     medium: 4,
@@ -131,6 +135,7 @@ export default Vue.extend({
             },
             bitter: {
                 name: 'bitter',
+                unit: 'ibu',
                 color: 'yellow-9',
                 limits: {
                     medium: 40,
@@ -223,7 +228,10 @@ export default Vue.extend({
           beerResult.length === 0 ? (this as any).selectedBeers = 'This kinda beer would be messed up... Try something else!' : (this as any).selectedBeers = beerResult;
       },
       sortedBeers(value) {
-          (this as any).beers.sort((a: {abv: number}, b: {abv: number}) => a.abv - b.abv);
+          (this as any).ingredientSelected = value.toLowerCase();
+          const ingredient = (this as any).ingredientSelected;
+          const unit = (this as any).beerSpecs[ingredient].unit;
+          (this as any).beers.sort((a: [number], b: [number]) => a[unit] - b[unit]);
       },
   },
   render(h) {

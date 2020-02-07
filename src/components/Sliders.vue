@@ -1,7 +1,7 @@
 <template>
   <div>
     <div v-for="beerSpec of beerSpecs">
-      <div class="q-pa-md">
+      <div class="q-pa-md sliders">
         <q-badge :color="beerSpec.color">
           {{ beerSpec.name }}:
           <span v-if="beerSpec.sliderValues.value <= beerSpec.limits.medium">Low</span>

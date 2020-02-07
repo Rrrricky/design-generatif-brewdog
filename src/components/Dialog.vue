@@ -20,7 +20,7 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
-    <q-btn label="Gimme my beer" color="primary" @click="findBeer" />
+    <q-btn class="cta" label="Gimme my beer" color="primary" @click="findBeer" />
     <q-dialog v-model="icon">
       <q-card v-if="typeof(selectedBeers) === 'object'">
         <q-btn icon="close" flat round dense v-close-popup class="float-right q-pa-sm"/>
