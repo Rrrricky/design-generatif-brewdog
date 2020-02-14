@@ -29,8 +29,8 @@
                         <q-select v-model="model" :options="options" label="Sort by:" dark @input="sortedBeers(model)" />
                     </div>
                 </div>
-                <div class="beers">
-                    <article class="beer-card" v-for="beer of beers">
+                <transition-group name="flip-list" class="beers" tag="div">
+                    <article class="beer-card" v-for="beer of beers" :key="beer.id">
                         <div class="beer-name">{{ beer.name }}</div>
                         <div class="beer-description">{{ beer.tagline }}</div>
                         <ul>
@@ -40,7 +40,7 @@
                             <li>Bitter: {{ beer.ibu }} IBU</li>
                         </ul>
                     </article>
-                </div>
+                </transition-group>
             </section>
         </div>
     </div>
@@ -242,4 +242,8 @@ export default Vue.extend({
 
 <style lang="scss">
     @import '~quasar-styl';
+
+    .flip-list-move {
+      transition: transform 1s;
+    }
 </style>
