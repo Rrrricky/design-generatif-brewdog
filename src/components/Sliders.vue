@@ -9,7 +9,6 @@
           <span v-else>High</span>
         </q-badge>
         <q-slider
-          @input="customDrag"
           v-model="beerSpec.sliderValues.value"
           :min="beerSpec.sliderValues.min"
           :max="beerSpec.sliderValues.max"
@@ -28,10 +27,13 @@
     props: {
       beerSpecs: Object,
     },
-    methods: {
-      customDrag() {
-        this.$emit('custom-input');
-      },
-    },
   };
 </script>
+
+<style lang="scss" scoped>
+  @import '../styles/tools/mixins';
+
+  .q-slider__track-container.absolute {
+    background-color: rgba(120, 120, 120);
+  }
+</style>

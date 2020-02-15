@@ -3,9 +3,10 @@
         <vue-p5
           @setup="setup"
           @draw="draw"
+          ref="canvas"
         />
         <div class="cursors">
-            <Sliders :beerSpecs="beerSpecs" @custom-input="result(sketchSaved)"/>
+            <Sliders :beerSpecs="beerSpecs"/>
             <Dialog :selectedBeers="selectedBeers" @find-beer="findBeer" />
         </div>
         <div class="board">
@@ -30,14 +31,15 @@
                     </div>
                 </div>
                 <transition-group name="flip-list" class="beers" tag="div">
-                    <article class="beer-card" v-for="beer of beers" :key="beer.id">
-                        <div class="beer-name">{{ beer.name }}</div>
-                        <div class="beer-description">{{ beer.tagline }}</div>
+                    <article class="beer-card" v-for="{name, tagline, target_fg, ph, abv, ibu, image_url} of beers" :key="name">
+                        <div class="beer-name">{{ name }}</div>
+                        <div class="beer-description">{{ tagline }}</div>
                         <ul>
-                            <li>Sugar: {{ beer.target_fg }}</li>
-                            <li>pH: {{ beer.ph }}</li>
-                            <li>Alcohol: {{ beer.abv }}%</li>
-                            <li>Bitter: {{ beer.ibu }} IBU</li>
+                            <li>Sugar: {{ target_fg }}</li>
+                            <li>pH: {{ ph }}</li>
+                            <li>Alcohol: {{ abv }}%</li>
+                            <li>Bitter: {{ ibu }} IBU</li>
+                            <li><img class="beer-pic" width="70" :src="image_url" alt="" crossOrigin="anonymous"></li>
                         </ul>
                     </article>
                 </transition-group>
@@ -51,6 +53,7 @@ import VueP5 from 'vue-p5';
 import Vue from 'vue';
 import Sliders from './Sliders.vue';
 import Dialog from './Dialog.vue';
+import * as Vibrant from 'node-vibrant'
 
 interface Options {
     createCanvas: (arg0: number, arg1: number) => void;
@@ -69,6 +72,9 @@ interface Options {
     random: (arg0: number) => number;
     rotate: (arg0: number) => void;
     PI: number;
+    background: (arg0: number) => number;
+    noise: (arg0: number, arg1: number, arg2: number) => number;
+    frameCount: number;
 }
 
 export default Vue.extend({
@@ -170,16 +176,42 @@ export default Vue.extend({
       (this as any).beers.map((beer: { ibu: number; }) => {
           (this as any).bitters.push(beer.ibu);
       });
+      const img = new Image();
+      img.crossOrigin = "Anonymous";
+      img.src = "https://i.picsum.photos/id/514/200/300.jpg";
+      img.addEventListener('load', () => {
+          const vibrant = new Vibrant(img);
+          console.log(vibrant);
+          const swatches: any = vibrant.swatches();
+          console.log('el', swatches);
+          for (const swatch in swatches) {
+              if (swatches.hasOwnProperty(swatch) && swatches[swatch]) console.log(swatch, swatches[swatch].getHex());
+          }
+      })
   },
+
+  computed: {
+    alcoholAmount() {
+        return (this as any).beerSpecs.alcohol.sliderValues.value;
+    },
+  },
+
+  watch: {
+    alcoholAmount(value) {
+        (this as any).$refs.canvas.$el.style.filter = `blur(${(value / 10) ** 2}px)`;
+    },
+  },
+
   methods: {
       setup(sketch: Options) {
           (this as any).sketchSaved = sketch;
           sketch.createCanvas(window.innerWidth, window.innerHeight / 2);
           sketch.noStroke(); // No outline stroke
           sketch.angleMode(sketch.DEGREES);
-          sketch.noLoop();
+          // sketch.noLoop();
       },
       draw(sketch: Options) {
+          sketch.background(sketch.color(255));
           const color = sketch.color(`hsb(44, ${(this as any).beerSpecs.bitter.sliderValues.value}%, 97%)`);
           sketch.fill(color);
           for (let i = 0; i < window.innerWidth; i += 100) { // col
@@ -187,7 +219,7 @@ export default Vue.extend({
                   sketch.rotate(sketch.PI / 3.0);
                   sketch.rect(
                     i + 10, // posx
-                    j - 10 * sketch.random((this as any).beerSpecs.alcohol.sliderValues.value ** 2 / 4), // posy
+                    j - 10 + (sketch.noise(j / 10, 0, sketch.frameCount * 0.002) * 2 - 1) * 30, // posy
                     1080 - (this as any).beerSpecs.sugar.sliderValues.value, // width
                     50, // height
                     sketch.abs((this as any).beerSpecs.acidity.sliderValues.value - 3) * 10, // radius
@@ -198,7 +230,7 @@ export default Vue.extend({
       result(sketchSaved: any) {
           sketchSaved.clear();
           sketchSaved.createCanvas(window.innerWidth, window.innerHeight / 2);
-          sketchSaved.canvas.style.width = '100vw';
+          sketchSaved.canvas.style.width = '100%';
           sketchSaved.redraw();
       },
       findBeer() {
@@ -227,7 +259,7 @@ export default Vue.extend({
           // tslint:disable-next-line:max-line-length
           beerResult.length === 0 ? (this as any).selectedBeers = 'This kinda beer would be messed up... Try something else!' : (this as any).selectedBeers = beerResult;
       },
-      sortedBeers(value) {
+      sortedBeers(value: string) {
           (this as any).ingredientSelected = value.toLowerCase();
           const ingredient = (this as any).ingredientSelected;
           const unit = (this as any).beerSpecs[ingredient].unit;
@@ -240,8 +272,68 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
     @import '~quasar-styl';
+    @import '../styles/tools/mixins';
+    @import '../styles/tools/variables';
+
+    .board {
+        margin: 10rem 10vw;
+
+        .introduction-title {
+            font-family: $league;
+            text-transform: uppercase;
+            margin-bottom: 2rem;
+        }
+
+        .introduction-description {
+            color: $silver-chalice;
+            line-height: 1.6;
+        }
+    }
+
+    .beers {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        grid-gap: 5rem;
+        justify-content: space-between;
+        margin: 5rem 0;
+
+        @include for-large-mobile-down {
+            margin: 7rem 0;
+        }
+    }
+
+    .beer-card {
+        box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+        border-radius: 5px;
+        padding: 2em;
+        line-height: 1.4;
+        font-size: 17px;
+        flex: 1 1 25%;
+
+        .beer-name {
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .beer-description {
+            font-size: .6em;
+            color: $silver-chalice;
+        }
+    }
+
+    .cursors {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+
+        @include for-tablet-down {
+            position: initial;
+            margin: 10vw;
+        }
+    }
 
     .flip-list-move {
       transition: transform 1s;

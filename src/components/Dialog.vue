@@ -6,9 +6,9 @@
           <div class="text-h6">Your beer</div>
         </q-card-section>
         <q-card-section class="q-pt-none" v-if="typeof(selectedBeers) === 'object'">
-          <div v-for="selectedBeer of selectedBeers">
-            <div class="beer-name">{{selectedBeer.name}}</div>
-            <div>{{selectedBeer.description}}</div>
+          <div v-for="{name, description} of selectedBeers">
+            <div class="beer-name">{{ name }}</div>
+            <div>{{ description }}</div>
           </div>
         </q-card-section>
         <q-card-section class="q-pt-none" v-if="typeof(selectedBeers) === 'string'">
@@ -24,12 +24,12 @@
     <q-dialog v-model="icon">
       <q-card v-if="typeof(selectedBeers) === 'object'">
         <q-btn icon="close" flat round dense v-close-popup class="float-right q-pa-sm"/>
-        <div v-for="selectedBeer of selectedBeers">
+        <div v-for="{name, description} of selectedBeers">
           <q-card-section class="row items-center q-pb-none">
-              <div class="text-h6">{{selectedBeer.name}}</div>
+              <div class="text-h6">{{ name }}</div>
           </q-card-section>
           <q-card-section class="beer-description">
-            {{selectedBeer.description}}
+            {{ description }}
           </q-card-section>
         </div>
       </q-card>
@@ -39,7 +39,7 @@
           <div class="text-h6">Oops</div>
         </q-card-section>
         <q-card-section>
-          {{selectedBeers}}
+          {{ selectedBeers }}
         </q-card-section>
       </q-card>
     </q-dialog>
@@ -68,3 +68,28 @@
     },
   };
 </script>
+
+<style lang="scss" scoped>
+  @import '../styles/tools/mixins';
+  @import '../styles/tools/variables';
+
+  .q-btn.cta {
+    transform: translateY(50%);
+
+    @include for-large-mobile-down {
+      width: 100%;
+    }
+  }
+
+  .q-card {
+    color: $cod-gray;
+
+    .q-btn {
+      color: $silver-chalice;
+    }
+
+    .beer-description {
+      color: $silver-chalice;
+    }
+  }
+</style>
