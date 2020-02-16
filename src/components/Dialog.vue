@@ -6,14 +6,14 @@
           <div class="text-h6">Your beer</div>
         </q-card-section>
         <q-card-section class="q-pt-none" v-if="typeof(selectedBeers) === 'object'">
-          <div v-for="{name, description} of selectedBeers">
+          <div v-for="{ name, description } of selectedBeers">
             <div class="beer-name">{{ name }}</div>
             <div>{{ description }}</div>
           </div>
         </q-card-section>
         <q-card-section class="q-pt-none" v-if="typeof(selectedBeers) === 'string'">
           <div class="beer-name">Oops!</div>
-          <div>{{selectedBeers}}</div>
+          <div>{{ selectedBeers }}</div>
         </q-card-section>
         <q-card-actions align="right">
           <q-btn flat label="OK" color="primary" v-close-popup />
@@ -24,7 +24,7 @@
     <q-dialog v-model="icon">
       <q-card v-if="typeof(selectedBeers) === 'object'">
         <q-btn icon="close" flat round dense v-close-popup class="float-right q-pa-sm"/>
-        <div v-for="{name, description} of selectedBeers">
+        <div v-for="{ name, description } of selectedBeers">
           <q-card-section class="row items-center q-pb-none">
               <div class="text-h6">{{ name }}</div>
           </q-card-section>

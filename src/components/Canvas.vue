@@ -31,12 +31,12 @@
                     </div>
                 </div>
                 <transition-group name="flip-list" class="beers" tag="div">
-                    <article class="beer-card" v-for="{name, tagline, target_fg, ph, abv, ibu, image_url} of beers" :key="name">
+                    <article class="beer-card" v-for="{ name, tagline, target_fg, ph, abv, ibu, image_url } of beers" :key="name">
                         <div class="beer-name">{{ name }}</div>
                         <div class="beer-description">{{ tagline }}</div>
                         <ul>
                             <li>Sugar: {{ target_fg }}</li>
-                            <li>pH: {{ ph }}</li>
+                            <li>Acidity: {{ ph }}</li>
                             <li>Alcohol: {{ abv }}%</li>
                             <li>Bitter: {{ ibu }} IBU</li>
                             <li><img class="beer-pic" width="70" :src="image_url" alt="" crossOrigin="anonymous"></li>
@@ -53,7 +53,7 @@ import VueP5 from 'vue-p5';
 import Vue from 'vue';
 import Sliders from './Sliders.vue';
 import Dialog from './Dialog.vue';
-import * as Vibrant from 'node-vibrant'
+import * as Vibrant from 'node-vibrant';
 
 interface Options {
     createCanvas: (arg0: number, arg1: number) => void;
@@ -86,6 +86,7 @@ export default Vue.extend({
   },
   data() {
       return {
+        _: (this as any),
         ingredientSelected: '',
         sketchSaved: {},
         width: 300,
@@ -125,7 +126,7 @@ export default Vue.extend({
                 },
             },
             acidity: {
-                name: 'pH',
+                name: 'acidity',
                 unit: 'ph',
                 color: 'purple',
                 limits: {
@@ -163,31 +164,35 @@ export default Vue.extend({
       };
   },
   mounted() {
+      const _ = (this as any);
+
       fetch('https://api.punkapi.com/v2/beers')
         .then((data) => data.json())
         .then((res) => {
-            (this as any).beers = res;
+            _.beers = res;
         });
       window.addEventListener('resize', () => {
-          (this as any).result((this as any).sketchSaved);
+          _.result(_.sketchSaved);
       });
   },
   updated(): void {
-      (this as any).beers.map((beer: { ibu: number; }) => {
-          (this as any).bitters.push(beer.ibu);
+      const _ = (this as any);
+
+      _.beers.map((beer: { ibu: number; }) => {
+          _.bitters.push(beer.ibu);
       });
       const img = new Image();
-      img.crossOrigin = "Anonymous";
-      img.src = "https://i.picsum.photos/id/514/200/300.jpg";
+      img.crossOrigin = 'Anonymous';
+      img.src = 'https://i.picsum.photos/id/514/200/300.jpg';
       img.addEventListener('load', () => {
           const vibrant = new Vibrant(img);
           console.log(vibrant);
           const swatches: any = vibrant.swatches();
           console.log('el', swatches);
           for (const swatch in swatches) {
-              if (swatches.hasOwnProperty(swatch) && swatches[swatch]) console.log(swatch, swatches[swatch].getHex());
+              if (swatches.hasOwnProperty(swatch) && swatches[swatch]) { console.log(swatch, swatches[swatch].getHex()); }
           }
-      })
+      });
   },
 
   computed: {
@@ -208,11 +213,14 @@ export default Vue.extend({
           sketch.createCanvas(window.innerWidth, window.innerHeight / 2);
           sketch.noStroke(); // No outline stroke
           sketch.angleMode(sketch.DEGREES);
-          // sketch.noLoop();
       },
       draw(sketch: Options) {
+          const _ = (this as any);
+          const { value: sugarValue, min: sugarMin, max: sugarMax } = _.beerSpecs.sugar.sliderValues;
+          const { value: acidityValue, min: acidityMin, max: acidityMax } = _.beerSpecs.acidity.sliderValues;
+
           sketch.background(sketch.color(255));
-          const color = sketch.color(`hsb(44, ${(this as any).beerSpecs.bitter.sliderValues.value}%, 97%)`);
+          const color = sketch.color(`hsb(44, ${_.beerSpecs.bitter.sliderValues.value}%, 97%)`);
           sketch.fill(color);
           for (let i = 0; i < window.innerWidth; i += 100) { // col
               for (let j = 0; j < window.innerHeight / 2; j += 100) { // row
@@ -220,12 +228,15 @@ export default Vue.extend({
                   sketch.rect(
                     i + 10, // posx
                     j - 10 + (sketch.noise(j / 10, 0, sketch.frameCount * 0.002) * 2 - 1) * 30, // posy
-                    1080 - (this as any).beerSpecs.sugar.sliderValues.value, // width
+                    _.convertRange(sugarValue, sugarMin, sugarMax, 5, 80), // width
                     50, // height
-                    sketch.abs((this as any).beerSpecs.acidity.sliderValues.value - 3) * 10, // radius
+                    _.convertRange(acidityValue, acidityMin, acidityMax, 30, 0), // radius
                   );
               }
           }
+      },
+      convertRange(oldValue: number, oldMin: number, oldMax: number, newMin = 0, newMax = 100) {
+          return ((oldValue - oldMin) / (oldMax - oldMin) ) * (newMax - newMin) + newMin;
       },
       result(sketchSaved: any) {
           sketchSaved.clear();
@@ -234,36 +245,44 @@ export default Vue.extend({
           sketchSaved.redraw();
       },
       findBeer() {
+          const _ = (this as any);
+          const { alcohol, sugar, acidity, bitter } = _.beerSpecs;
+          const { value: abvSlider } =  alcohol.sliderValues;
+          const { value: sugarSlider } = sugar.sliderValues;
+          const { value: aciditySlider } = acidity.sliderValues;
+          const { value: bitterSlider } = bitter.sliderValues;
+
           // Filter by abv
-          let beerResult = (this as any).beers
+          let beerResult = _.beers
             // tslint:disable-next-line:max-line-length
-            .filter((beer: {abv: number; }) => beer.abv > (this as any).beerSpecs.alcohol.sliderValues.value - 2 && beer.abv < (this as any).beerSpecs.alcohol.sliderValues.value + 2);
+            .filter((beer: { abv: number; }) => beer.abv > abvSlider - 2 && beer.abv < abvSlider + 2);
 
           // Then filter by fg
           if (beerResult.length > 1) {
               // tslint:disable-next-line:max-line-length
-              beerResult = beerResult.filter((beer: { target_fg: number; }) => beer.target_fg > (this as any).beerSpecs.sugar.sliderValues.value  - 30 && beer.target_fg < (this as any).beerSpecs.sugar.sliderValues.value + 30);
+              beerResult = beerResult.filter((beer: { target_fg: number; }) => beer.target_fg > sugarSlider  - 30 && beer.target_fg < sugarSlider + 30);
           }
 
           // Then filter by pH
           if (beerResult.length > 1) {
               // tslint:disable-next-line:max-line-length
-              beerResult = beerResult.filter((beer: { ph: number; }) => beer.ph > (this as any).beerSpecs.acidity.sliderValues.value - 1 && beer.ph < (this as any).beerSpecs.acidity.sliderValues.value + 2);
+              beerResult = beerResult.filter((beer: { ph: number; }) => beer.ph > aciditySlider - 1 && beer.ph < aciditySlider + 2);
           }
 
           // Then filter by bitter
           if (beerResult.length > 1) {
               // tslint:disable-next-line:max-line-length
-              beerResult = beerResult.filter((beer: { ibu: number; }) => beer.ibu > (this as any).beerSpecs.bitter.sliderValues.value - 25 && beer.ibu < (this as any).beerSpecs.bitter.sliderValues.value + 25);
+              beerResult = beerResult.filter((beer: { ibu: number; }) => beer.ibu > bitterSlider - 25 && beer.ibu < bitterSlider + 25);
           }
           // tslint:disable-next-line:max-line-length
-          beerResult.length === 0 ? (this as any).selectedBeers = 'This kinda beer would be messed up... Try something else!' : (this as any).selectedBeers = beerResult;
+          beerResult.length === 0 ? _.selectedBeers = 'This kinda beer would be messed up... Try something else!' : _.selectedBeers = beerResult;
       },
       sortedBeers(value: string) {
-          (this as any).ingredientSelected = value.toLowerCase();
-          const ingredient = (this as any).ingredientSelected;
-          const unit = (this as any).beerSpecs[ingredient].unit;
-          (this as any).beers.sort((a: [number], b: [number]) => a[unit] - b[unit]);
+          const _ = (this as any);
+          _.ingredientSelected = value.toLowerCase();
+          const ingredient = _.ingredientSelected;
+          const { unit } = _.beerSpecs[ingredient];
+          _.beers.sort((a: [number], b: [number]) => unit === 'ph' ? a[unit] - b[unit] : b[unit] - a[unit]);
       },
   },
   render(h) {

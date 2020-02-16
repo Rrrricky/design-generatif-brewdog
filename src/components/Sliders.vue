@@ -1,20 +1,20 @@
 <template>
   <div>
-    <div v-for="beerSpec of beerSpecs">
+    <div v-for="{ name, color, sliderValues, limits } of beerSpecs">
       <div class="q-pa-md sliders">
-        <q-badge :color="beerSpec.color">
-          {{ beerSpec.name }}:
-          <span v-if="beerSpec.sliderValues.value <= beerSpec.limits.medium">Low</span>
-          <span v-else-if="beerSpec.sliderValues.value > beerSpec.limits.medium && beerSpec.sliderValues.value <= beerSpec.limits.high">Medium</span>
+        <q-badge :color="color">
+          {{ name }}:
+          <span v-if="sliderValues.value <= limits.medium">Low</span>
+          <span v-else-if="sliderValues.value > limits.medium && sliderValues.value <= limits.high">Medium</span>
           <span v-else>High</span>
         </q-badge>
         <q-slider
-          v-model="beerSpec.sliderValues.value"
-          :min="beerSpec.sliderValues.min"
-          :max="beerSpec.sliderValues.max"
-          :step="beerSpec.sliderValues.step"
+          v-model="sliderValues.value"
+          :min="sliderValues.min"
+          :max="sliderValues.max"
+          :step="sliderValues.step"
           snap
-          :color="beerSpec.color"
+          :color="color"
         />
       </div>
     </div>
