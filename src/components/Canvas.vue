@@ -94,6 +94,8 @@ export default Vue.extend({
         beers: [],
         bitters: [],
         alert: false,
+        mainColor: '',
+        beersColors: [],
         beerSpecs: {
             alcohol: {
                 name: 'alcohol',
@@ -170,7 +172,10 @@ export default Vue.extend({
         .then((data) => data.json())
         .then((res) => {
             _.beers = res;
+            console.log(_.beers)
+            _.giveColor();
         });
+
       window.addEventListener('resize', () => {
           _.result(_.sketchSaved);
       });
@@ -182,16 +187,10 @@ export default Vue.extend({
           _.bitters.push(beer.ibu);
       });
       const img = new Image();
-      img.crossOrigin = 'Anonymous';
       img.src = 'https://i.picsum.photos/id/514/200/300.jpg';
-      img.addEventListener('load', () => {
-          const vibrant = new Vibrant(img);
-          console.log(vibrant);
-          const swatches: any = vibrant.swatches();
-          console.log('el', swatches);
-          for (const swatch in swatches) {
-              if (swatches.hasOwnProperty(swatch) && swatches[swatch]) { console.log(swatch, swatches[swatch].getHex()); }
-          }
+      const v = new Vibrant(img.src);
+      v.getPalette().then(palette => {
+          _.mainColor = palette.Vibrant.hex
       });
   },
 
@@ -208,6 +207,17 @@ export default Vue.extend({
   },
 
   methods: {
+      giveColor() {
+          const _ = (this as any);
+          for(const { image_url } of _.beers) {
+              const v = new Vibrant(image_url);
+              v.getPalette().then((palette: { Vibrant: { hex: string; }; }) => {
+                  _.mainColor = palette.Vibrant.hex;
+                  if (!(_.beersColors.includes(_.mainColor))) _.beersColors.push(_.mainColor);
+              });
+          }
+          console.log(_.beersColors)
+      },
       setup(sketch: Options) {
           (this as any).sketchSaved = sketch;
           sketch.createCanvas(window.innerWidth, window.innerHeight / 2);
