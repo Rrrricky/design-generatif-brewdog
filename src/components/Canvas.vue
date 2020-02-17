@@ -56,7 +56,7 @@ import Dialog from './Dialog.vue';
 import * as Vibrant from 'node-vibrant';
 
 interface Options {
-    createCanvas: (arg0: number, arg1: number) => void;
+    createCanvas: (arg0: number, arg1: number, arg2: any) => void;
     noStroke: () => void;
     fill: (...args: number[]) => void;
     rect: (...args: number[]) => void;
@@ -69,12 +69,24 @@ interface Options {
     createButton: (arg0: string) => void;
     button: any;
     abs: (arg0: number) => number;
-    random: (arg0: number) => number;
+    random: (arg0: number, arg1: number) => number;
     rotate: (arg0: number) => void;
     PI: number;
     background: (arg0: number) => number;
     noise: (arg0: number, arg1: number, arg2: number) => number;
     frameCount: number;
+    torus: (...args: number[]) => void;
+    rotateY: (...args: number[]) => void;
+    pointLight: (...args: number[]) => void;
+    width: number;
+    height: number;
+    camera: (...args: number[]) => void;
+    map: (...args: number[]) => number;
+    mouseX: number;
+    ambientMaterial: (...args: number[]) => void;
+    WEBGL: any;
+    stroke: (arg0: number) => void;
+    noFill: () => void;
 }
 
 export default Vue.extend({
@@ -100,7 +112,8 @@ export default Vue.extend({
             alcohol: {
                 name: 'alcohol',
                 unit: 'abv',
-                color: 'pink-4',
+                color: 'grey-1',
+                textColor: 'grey-10',
                 limits: {
                     medium: 6,
                     high: 10,
@@ -115,7 +128,8 @@ export default Vue.extend({
             sugar: {
                 name: 'sugar',
                 unit: 'target_fg',
-                color: 'red',
+                color: 'grey-1',
+                textColor: 'grey-10',
                 limits: {
                     medium: 1030,
                     high: 1050,
@@ -130,7 +144,8 @@ export default Vue.extend({
             acidity: {
                 name: 'acidity',
                 unit: 'ph',
-                color: 'purple',
+                color: 'grey-1',
+                textColor: 'grey-10',
                 limits: {
                     medium: 4,
                     high: 5,
@@ -145,7 +160,8 @@ export default Vue.extend({
             bitter: {
                 name: 'bitter',
                 unit: 'ibu',
-                color: 'yellow-9',
+                color: 'grey-1',
+                textColor: 'grey-10',
                 limits: {
                     medium: 40,
                     high: 70,
@@ -172,7 +188,6 @@ export default Vue.extend({
         .then((data) => data.json())
         .then((res) => {
             _.beers = res;
-            console.log(_.beers)
             _.giveColor();
         });
 
@@ -185,12 +200,6 @@ export default Vue.extend({
 
       _.beers.map((beer: { ibu: number; }) => {
           _.bitters.push(beer.ibu);
-      });
-      const img = new Image();
-      img.src = 'https://i.picsum.photos/id/514/200/300.jpg';
-      const v = new Vibrant(img.src);
-      v.getPalette().then(palette => {
-          _.mainColor = palette.Vibrant.hex
       });
   },
 
@@ -209,44 +218,65 @@ export default Vue.extend({
   methods: {
       giveColor() {
           const _ = (this as any);
-          for(const { image_url } of _.beers) {
+          for (const { image_url } of _.beers) {
               const v = new Vibrant(image_url);
               v.getPalette().then((palette: { Vibrant: { hex: string; }; }) => {
                   _.mainColor = palette.Vibrant.hex;
-                  if (!(_.beersColors.includes(_.mainColor))) _.beersColors.push(_.mainColor);
+                  if (!(_.beersColors.includes(_.mainColor))) { _.beersColors.push(_.mainColor); }
               });
           }
-          console.log(_.beersColors)
       },
       setup(sketch: Options) {
           (this as any).sketchSaved = sketch;
-          sketch.createCanvas(window.innerWidth, window.innerHeight / 2);
-          sketch.noStroke(); // No outline stroke
+          sketch.createCanvas(window.innerWidth, window.innerHeight / 2, sketch.WEBGL);
+          // sketch.noStroke(); // No outline stroke
           sketch.angleMode(sketch.DEGREES);
       },
+
       draw(sketch: Options) {
+
           const _ = (this as any);
           const { value: sugarValue, min: sugarMin, max: sugarMax } = _.beerSpecs.sugar.sliderValues;
           const { value: acidityValue, min: acidityMin, max: acidityMax } = _.beerSpecs.acidity.sliderValues;
+          sketch.background(sketch.color('#171717'));
+          // sketch.pointLight(255, 255, 255, 0, -200, 200);
+          // sketch.ambientMaterial(255);
+          sketch.noFill();
+          sketch.stroke(255);
+          const mouseX = sketch.map(sketch.mouseX, 0, sketch.width, -150, 150);
+          const camx = sketch.random(0, _.convertRange(sugarValue, sugarMin, sugarMax, 0, 12));
+          const camy = sketch.random(0, _.convertRange(sugarValue, sugarMin, sugarMax, 0, 12));
+          const camz = sketch.random(0, _.convertRange(sugarValue, sugarMin, sugarMax, 0, 12));
+          sketch.camera(mouseX, camy, camz + sketch.height / 2, camx, camy, camz, 0, 1, 0);
+          sketch.rotateY(sketch.frameCount * .3);
 
-          sketch.background(sketch.color(255));
-          const color = sketch.color(`hsb(44, ${_.beerSpecs.bitter.sliderValues.value}%, 97%)`);
-          sketch.fill(color);
-          for (let i = 0; i < window.innerWidth; i += 100) { // col
-              for (let j = 0; j < window.innerHeight / 2; j += 100) { // row
-                  sketch.rotate(sketch.PI / 3.0);
+          // const color = sketch.color(`hsb(44, ${_.beerSpecs.bitter.sliderValues.value}%, 97%)`);
+          let k = 0;
+          // for (let i = -window.innerWidth; i < window.innerWidth; i += 100) { // col
+            //  for (let j = 0; j < window.innerHeight / 2; j += 100) { // row
+                  // sketch.translate(i, j - 100 + (sketch.noise(j / 10, 0, sketch.frameCount * .002) * 2 - 1) * 30, 0)
+          sketch.torus(30, 15, Math.floor(_.convertRange(acidityValue, acidityMin, acidityMax, 24, 3)), 12);
+
+                  // sketch.fill(_.beersColors[k])
+                  // sketch.rotate(sketch.PI / 3.0);
+                  /*
                   sketch.rect(
                     i + 10, // posx
-                    j - 10 + (sketch.noise(j / 10, 0, sketch.frameCount * 0.002) * 2 - 1) * 30, // posy
+                    j - 10 + (sketch.noise(j / 10, 0, sketch.frameCount * _.convertRange(sugarValue, sugarMin, sugarMax, .002, .010)) * 2 - 1) * 30, // posy
                     _.convertRange(sugarValue, sugarMin, sugarMax, 5, 80), // width
                     50, // height
                     _.convertRange(acidityValue, acidityMin, acidityMax, 30, 0), // radius
                   );
-              }
-          }
+                   */
+          if (k < _.beersColors.length - 1) { k++; }
+             // }
+          // }
       },
       convertRange(oldValue: number, oldMin: number, oldMax: number, newMin = 0, newMax = 100) {
           return ((oldValue - oldMin) / (oldMax - oldMin) ) * (newMax - newMin) + newMin;
+      },
+      randomizer(arr: [string]) {
+          return arr[Math.floor((Math.random() * arr.length))];
       },
       result(sketchSaved: any) {
           sketchSaved.clear();

@@ -1,9 +1,9 @@
 <template>
   <div>
-    <div v-for="{ name, color, sliderValues, limits } of beerSpecs">
+    <div v-for="{ name, color, textColor, sliderValues, limits } of beerSpecs">
       <div class="q-pa-md sliders">
-        <q-badge :color="color">
-          {{ name }}:
+        <q-badge :color="color" :text-color="textColor">
+          {{ name | capitalize }}:
           <span v-if="sliderValues.value <= limits.medium">Low</span>
           <span v-else-if="sliderValues.value > limits.medium && sliderValues.value <= limits.high">Medium</span>
           <span v-else>High</span>
@@ -15,6 +15,7 @@
           :step="sliderValues.step"
           snap
           :color="color"
+          dark
         />
       </div>
     </div>
@@ -27,13 +28,21 @@
     props: {
       beerSpecs: Object,
     },
+    filters: {
+      capitalize: function (value) {
+        if (!value) return ''
+        value = value.toString()
+        return value.charAt(0).toUpperCase() + value.slice(1)
+      }
+    }
   };
 </script>
 
 <style lang="scss" scoped>
   @import '../styles/tools/mixins';
 
-  .q-slider__track-container.absolute {
-    background-color: rgba(120, 120, 120);
+  .sliders div.q-slider__track-container.absolute {
+    background: red !important;
   }
+
 </style>
