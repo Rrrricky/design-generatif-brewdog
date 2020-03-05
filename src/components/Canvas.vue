@@ -27,19 +27,24 @@
             <section class="listBeers">
                 <div class="q-pa-md dropdown-sort" style="max-width: 300px">
                     <div class="q-gutter-md">
-                        <q-select v-model="model" :options="options" label="Sort by:" dark @input="sortedBeers(model)" />
+                        <q-select v-model="model" :options="options" label="Sort by:" @input="sortedBeers(model)" />
                     </div>
                 </div>
                 <transition-group name="flip-list" class="beers" tag="div">
                     <article class="beer-card" v-for="{ name, tagline, target_fg, ph, abv, ibu, image_url } of beers" :key="name">
+                        <vue-p5 class="beer-design"
+                          @setup="setupCard"
+                          @draw="drawCard"
+                          ref="canvasCard"
+                        />
                         <div class="beer-name">{{ name }}</div>
                         <div class="beer-description">{{ tagline }}</div>
-                        <ul>
+                        <ul class="beer-proportions">
                             <li>Sugar: {{ target_fg }}</li>
                             <li>Acidity: {{ ph }}</li>
                             <li>Alcohol: {{ abv }}%</li>
                             <li>Bitter: {{ ibu }} IBU</li>
-                            <li><img class="beer-pic" width="70" :src="image_url" alt="" crossOrigin="anonymous"></li>
+                            <!-- <li><img class="beer-pic" width="70" :src="image_url" alt="" crossOrigin="anonymous"></li> -->
                         </ul>
                     </article>
                 </transition-group>
@@ -56,7 +61,7 @@ import Dialog from './Dialog.vue';
 import * as Vibrant from 'node-vibrant';
 
 interface Options {
-    createCanvas: (arg0: number, arg1: number, arg2: any) => void;
+    createCanvas: (arg0: number, arg1: number, arg2?: any) => void;
     noStroke: () => void;
     fill: (...args: number[]) => void;
     rect: (...args: number[]) => void;
@@ -226,6 +231,19 @@ export default Vue.extend({
               });
           }
       },
+      setupCard(sketch: Options) {
+          (this as any).sketchSaved = sketch;
+          sketch.createCanvas(100, 50);
+          sketch.noStroke(); // No outline stroke
+      },
+      drawCard(sketch: Options) {
+
+          const _ = (this as any);
+          sketch.background(sketch.color('#171717'));
+          sketch.noFill();
+          sketch.stroke(255);
+      },
+
       setup(sketch: Options) {
           (this as any).sketchSaved = sketch;
           sketch.createCanvas(window.innerWidth, window.innerHeight / 2, sketch.WEBGL);
@@ -337,7 +355,9 @@ export default Vue.extend({
     @import '../styles/tools/variables';
 
     .board {
-        margin: 10rem 10vw;
+        padding: 10rem 10vw;
+        background: $alabaster;
+        color: $cod-gray;
 
         .introduction-title {
             font-family: $league;
@@ -364,12 +384,14 @@ export default Vue.extend({
     }
 
     .beer-card {
-        box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+        position: relative;
+        box-shadow: 0 14px 28px rgba(200,200,200,0.25), 0 5px 5px rgba(200,200,200,0.22);
         border-radius: 5px;
         padding: 2em;
         line-height: 1.4;
         font-size: 17px;
         flex: 1 1 25%;
+        overflow: hidden;
 
         .beer-name {
             cursor: pointer;
@@ -380,6 +402,9 @@ export default Vue.extend({
         .beer-description {
             font-size: .6em;
             color: $silver-chalice;
+        }
+        .beer-proportions {
+            font-size: 1rem;
         }
     }
 
