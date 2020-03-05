@@ -30,12 +30,11 @@
                         <q-select v-model="model" :options="options" label="Sort by:" @input="sortedBeers(model)" />
                     </div>
                 </div>
-                <transition-group name="flip-list" class="beers" tag="div">
-                    <article class="beer-card" v-for="{ name, tagline, target_fg, ph, abv, ibu, image_url } of beers" :key="name">
-                        <vue-p5 class="beer-design"
+                <transition-group name="flip-list" class="beers" tag="div" ref="card">
+                    <article @mouseenter="generateDesign(index)" class="beer-card" v-for="({ name, tagline, target_fg, ph, abv, ibu, image_url }, index) of beers" :key="name" ref="card">
+                        <vue-p5
                           @setup="setupCard"
                           @draw="drawCard"
-                          ref="canvasCard"
                         />
                         <div class="beer-name">{{ name }}</div>
                         <div class="beer-description">{{ tagline }}</div>
@@ -221,6 +220,10 @@ export default Vue.extend({
   },
 
   methods: {
+      generateDesign(index: number) {
+          const _ = (this as any);
+          console.log(_.beers[index]);
+      },
       giveColor() {
           const _ = (this as any);
           for (const { image_url } of _.beers) {
@@ -231,34 +234,27 @@ export default Vue.extend({
               });
           }
       },
-      setupCard(sketch: Options) {
-          (this as any).sketchSaved = sketch;
-          sketch.createCanvas(100, 50);
-          sketch.noStroke(); // No outline stroke
-      },
-      drawCard(sketch: Options) {
 
-          const _ = (this as any);
+      setupCard(sketch: Options) {
+          sketch.createCanvas(100, 50);
+      },
+
+      drawCard(sketch: Options) {
+          // const _ = (this as any);
           sketch.background(sketch.color('#171717'));
-          sketch.noFill();
-          sketch.stroke(255);
       },
 
       setup(sketch: Options) {
           (this as any).sketchSaved = sketch;
           sketch.createCanvas(window.innerWidth, window.innerHeight / 2, sketch.WEBGL);
-          // sketch.noStroke(); // No outline stroke
           sketch.angleMode(sketch.DEGREES);
       },
 
       draw(sketch: Options) {
-
           const _ = (this as any);
           const { value: sugarValue, min: sugarMin, max: sugarMax } = _.beerSpecs.sugar.sliderValues;
           const { value: acidityValue, min: acidityMin, max: acidityMax } = _.beerSpecs.acidity.sliderValues;
           sketch.background(sketch.color('#171717'));
-          // sketch.pointLight(255, 255, 255, 0, -200, 200);
-          // sketch.ambientMaterial(255);
           sketch.noFill();
           sketch.stroke(255);
           const mouseX = sketch.map(sketch.mouseX, 0, sketch.width, -150, 150);
@@ -268,33 +264,14 @@ export default Vue.extend({
           sketch.camera(mouseX, camy, camz + sketch.height / 2, camx, camy, camz, 0, 1, 0);
           sketch.rotateY(sketch.frameCount * .3);
 
-          // const color = sketch.color(`hsb(44, ${_.beerSpecs.bitter.sliderValues.value}%, 97%)`);
           let k = 0;
-          // for (let i = -window.innerWidth; i < window.innerWidth; i += 100) { // col
-            //  for (let j = 0; j < window.innerHeight / 2; j += 100) { // row
-                  // sketch.translate(i, j - 100 + (sketch.noise(j / 10, 0, sketch.frameCount * .002) * 2 - 1) * 30, 0)
           sketch.torus(30, 15, Math.floor(_.convertRange(acidityValue, acidityMin, acidityMax, 24, 3)), 12);
-
-                  // sketch.fill(_.beersColors[k])
-                  // sketch.rotate(sketch.PI / 3.0);
-                  /*
-                  sketch.rect(
-                    i + 10, // posx
-                    j - 10 + (sketch.noise(j / 10, 0, sketch.frameCount * _.convertRange(sugarValue, sugarMin, sugarMax, .002, .010)) * 2 - 1) * 30, // posy
-                    _.convertRange(sugarValue, sugarMin, sugarMax, 5, 80), // width
-                    50, // height
-                    _.convertRange(acidityValue, acidityMin, acidityMax, 30, 0), // radius
-                  );
-                   */
           if (k < _.beersColors.length - 1) { k++; }
              // }
           // }
       },
       convertRange(oldValue: number, oldMin: number, oldMax: number, newMin = 0, newMax = 100) {
           return ((oldValue - oldMin) / (oldMax - oldMin) ) * (newMax - newMin) + newMin;
-      },
-      randomizer(arr: [string]) {
-          return arr[Math.floor((Math.random() * arr.length))];
       },
       result(sketchSaved: any) {
           sketchSaved.clear();
@@ -392,7 +369,7 @@ export default Vue.extend({
         font-size: 17px;
         flex: 1 1 25%;
         overflow: hidden;
-
+        
         .beer-name {
             cursor: pointer;
             font-weight: bold;
@@ -404,6 +381,7 @@ export default Vue.extend({
             color: $silver-chalice;
         }
         .beer-proportions {
+            margin-top: 1em;
             font-size: 1rem;
         }
     }
