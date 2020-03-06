@@ -42,9 +42,4 @@
 
 <style lang="scss" scoped>
   @import '../styles/tools/mixins';
-
-  .sliders div.q-slider__track-container.absolute {
-    background: red !important;
-  }
-
 </style>

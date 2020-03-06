@@ -4,6 +4,7 @@
           @setup="setup"
           @draw="draw"
           ref="canvas"
+          class="main-canvas"
         />
         <div class="cursors">
             <Sliders :beerSpecs="beerSpecs"/>
@@ -30,12 +31,13 @@
                         <q-select v-model="model" :options="options" label="Sort by:" @input="sortedBeers(model)" />
                     </div>
                 </div>
-                <transition-group name="flip-list" class="beers" tag="div" ref="card">
+                <vue-p5
+                  @setup="setupCard"
+                  @draw="drawCard"
+                  class="beer-canvas"
+                />
+                <transition-group name="flip-list" class="beers" tag="div" ref="card" v-if="beers.length">
                     <article @mouseenter="generateDesign(index)" class="beer-card" v-for="({ name, tagline, target_fg, ph, abv, ibu, image_url }, index) of beers" :key="name" ref="card">
-                        <vue-p5
-                          @setup="setupCard"
-                          @draw="drawCard"
-                        />
                         <div class="beer-name">{{ name }}</div>
                         <div class="beer-description">{{ tagline }}</div>
                         <ul class="beer-proportions">
@@ -105,6 +107,7 @@ export default Vue.extend({
         _: (this as any),
         ingredientSelected: '',
         sketchSaved: {},
+        cardIndex: 0,
         width: 300,
         height: 300,
         beers: [],
@@ -183,6 +186,7 @@ export default Vue.extend({
         options: [
           'Alcohol', 'Sugar', 'Acidity', 'Bitter',
         ],
+        posy: 0,
       };
   },
   mounted() {
@@ -235,13 +239,51 @@ export default Vue.extend({
           }
       },
 
+      updateIndex(index: number) {
+          const _ = (this as any);
+          _.cardIndex = index;
+      },
+
       setupCard(sketch: Options) {
-          sketch.createCanvas(100, 50);
+          (this as any).sketchSaved = sketch;
+          sketch.createCanvas(window.innerWidth, window.innerHeight / 4);
       },
 
       drawCard(sketch: Options) {
-          // const _ = (this as any);
+          const _ = (this as any);
           sketch.background(sketch.color('#171717'));
+          for(const [index, beer] of Object.entries(_.beers)) {
+              // @ts-ignore
+              const color = sketch.color(`hsb(44, ${beer.ibu}%, 97%)`);
+              sketch.fill(color);
+              // @ts-ignore
+              let posx = parseInt(index * window.innerWidth / 12);
+              // @ts-ignore
+              sketch.rect(
+                posx,
+                // @ts-ignore
+                _.posy + 30,
+                // _.posy + 30 + (sketch.noise(index / 10, 0, sketch.frameCount * .0003 * (beer.target_fg - 1000)) * 2 - 1) * 30,
+                window.innerWidth / 12,
+                20,
+                // @ts-ignore
+                sketch.abs(beer.ph - 3) * 5
+              );
+              /*
+              for (let i = 0; i < window.innerWidth; i += 100) { // col
+                  for (let j = 0; j < window.innerHeight / 2; j += 100) { // row
+                      // sketch.rotate(sketch.PI / 3.0);
+                      sketch.rect(
+                        i + 10, // posx
+                        j - 10 + (sketch.noise(j / 10, 0, sketch.frameCount * 0.002) * 2 - 1) * 30, // posy
+                        10, // width
+                        50, // height
+                        sketch.abs(beer.ph - 3) * 10, // radius
+                      );
+                  }
+              }
+               */
+          }
       },
 
       setup(sketch: Options) {
@@ -369,7 +411,7 @@ export default Vue.extend({
         font-size: 17px;
         flex: 1 1 25%;
         overflow: hidden;
-        
+
         .beer-name {
             cursor: pointer;
             font-weight: bold;

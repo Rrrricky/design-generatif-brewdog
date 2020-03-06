@@ -29,6 +29,13 @@
 
 .listBeers {
     margin: 10rem 0;
+
+    .beer-canvas {
+        width: 100vw;
+        position: relative;
+        left: 50%;
+        transform: translateX(-50vw);
+    }
 }
 
 
