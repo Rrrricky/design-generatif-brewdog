@@ -25,31 +25,12 @@
                     </p>
                 </div>
             </section>
-            <section class="listBeers">
-                <div class="q-pa-md dropdown-sort" style="max-width: 300px">
-                    <div class="q-gutter-md">
-                        <q-select v-model="model" :options="options" label="Sort by:" @input="sortedBeers(model)" />
-                    </div>
+            <div class="q-pa-md dropdown-sort" style="max-width: 300px">
+                <div class="q-gutter-md">
+                    <q-select v-model="model" :options="options" label="Sort by:" @input="sortedBeers(model)" />
                 </div>
-                <vue-p5
-                  @setup="setupCard"
-                  @draw="drawCard"
-                  class="beer-canvas"
-                />
-                <transition-group name="flip-list" class="beers" tag="div" ref="card" v-if="beers.length">
-                    <article @mouseenter="generateDesign(index)" class="beer-card" v-for="({ name, tagline, target_fg, ph, abv, ibu, image_url }, index) of beers" :key="name" ref="card">
-                        <div class="beer-name">{{ name }}</div>
-                        <div class="beer-description">{{ tagline }}</div>
-                        <ul class="beer-proportions">
-                            <li>Sugar: {{ target_fg }}</li>
-                            <li>Acidity: {{ ph }}</li>
-                            <li>Alcohol: {{ abv }}%</li>
-                            <li>Bitter: {{ ibu }} IBU</li>
-                            <!-- <li><img class="beer-pic" width="70" :src="image_url" alt="" crossOrigin="anonymous"></li> -->
-                        </ul>
-                    </article>
-                </transition-group>
-            </section>
+            </div>
+            <CardCanvas :beers="beers" :beerChoice="beerChoice" />
         </div>
     </div>
 </template>
@@ -59,6 +40,7 @@ import VueP5 from 'vue-p5';
 import Vue from 'vue';
 import Sliders from './Sliders.vue';
 import Dialog from './Dialog.vue';
+import CardCanvas from './CardCanvas.vue';
 import * as Vibrant from 'node-vibrant';
 
 interface Options {
@@ -101,6 +83,7 @@ export default Vue.extend({
     'vue-p5': VueP5,
     Sliders,
     Dialog,
+    CardCanvas
   },
   data() {
       return {
@@ -115,6 +98,7 @@ export default Vue.extend({
         alert: false,
         mainColor: '',
         beersColors: [],
+        beerHover: null,
         beerSpecs: {
             alcohol: {
                 name: 'alcohol',
@@ -187,6 +171,7 @@ export default Vue.extend({
           'Alcohol', 'Sugar', 'Acidity', 'Bitter',
         ],
         posy: 0,
+        beerChoice: null,
       };
   },
   mounted() {
@@ -197,6 +182,7 @@ export default Vue.extend({
         .then((res) => {
             _.beers = res;
             _.giveColor();
+            _.beerChoice = _.beers[0];
         });
 
       window.addEventListener('resize', () => {
@@ -224,10 +210,6 @@ export default Vue.extend({
   },
 
   methods: {
-      generateDesign(index: number) {
-          const _ = (this as any);
-          console.log(_.beers[index]);
-      },
       giveColor() {
           const _ = (this as any);
           for (const { image_url } of _.beers) {
@@ -236,53 +218,6 @@ export default Vue.extend({
                   _.mainColor = palette.Vibrant.hex;
                   if (!(_.beersColors.includes(_.mainColor))) { _.beersColors.push(_.mainColor); }
               });
-          }
-      },
-
-      updateIndex(index: number) {
-          const _ = (this as any);
-          _.cardIndex = index;
-      },
-
-      setupCard(sketch: Options) {
-          (this as any).sketchSaved = sketch;
-          sketch.createCanvas(window.innerWidth, window.innerHeight / 4);
-      },
-
-      drawCard(sketch: Options) {
-          const _ = (this as any);
-          sketch.background(sketch.color('#171717'));
-          for(const [index, beer] of Object.entries(_.beers)) {
-              // @ts-ignore
-              const color = sketch.color(`hsb(44, ${beer.ibu}%, 97%)`);
-              sketch.fill(color);
-              // @ts-ignore
-              let posx = parseInt(index * window.innerWidth / 12);
-              // @ts-ignore
-              sketch.rect(
-                posx,
-                // @ts-ignore
-                _.posy + 30,
-                // _.posy + 30 + (sketch.noise(index / 10, 0, sketch.frameCount * .0003 * (beer.target_fg - 1000)) * 2 - 1) * 30,
-                window.innerWidth / 12,
-                20,
-                // @ts-ignore
-                sketch.abs(beer.ph - 3) * 5
-              );
-              /*
-              for (let i = 0; i < window.innerWidth; i += 100) { // col
-                  for (let j = 0; j < window.innerHeight / 2; j += 100) { // row
-                      // sketch.rotate(sketch.PI / 3.0);
-                      sketch.rect(
-                        i + 10, // posx
-                        j - 10 + (sketch.noise(j / 10, 0, sketch.frameCount * 0.002) * 2 - 1) * 30, // posy
-                        10, // width
-                        50, // height
-                        sketch.abs(beer.ph - 3) * 10, // radius
-                      );
-                  }
-              }
-               */
           }
       },
 
@@ -305,12 +240,7 @@ export default Vue.extend({
           const camz = sketch.random(0, _.convertRange(sugarValue, sugarMin, sugarMax, 0, 12));
           sketch.camera(mouseX, camy, camz + sketch.height / 2, camx, camy, camz, 0, 1, 0);
           sketch.rotateY(sketch.frameCount * .3);
-
-          let k = 0;
           sketch.torus(30, 15, Math.floor(_.convertRange(acidityValue, acidityMin, acidityMax, 24, 3)), 12);
-          if (k < _.beersColors.length - 1) { k++; }
-             // }
-          // }
       },
       convertRange(oldValue: number, oldMin: number, oldMax: number, newMin = 0, newMax = 100) {
           return ((oldValue - oldMin) / (oldMax - oldMin) ) * (newMax - newMin) + newMin;
@@ -360,6 +290,10 @@ export default Vue.extend({
           const ingredient = _.ingredientSelected;
           const { unit } = _.beerSpecs[ingredient];
           _.beers.sort((a: [number], b: [number]) => unit === 'ph' ? a[unit] - b[unit] : b[unit] - a[unit]);
+      },
+      generateDesign(index: number) {
+          const _ = (this as any);
+          _.beerChoice = _.beers[index];
       },
   },
   render(h) {
@@ -437,9 +371,5 @@ export default Vue.extend({
             position: initial;
             margin: 10vw;
         }
-    }
-
-    .flip-list-move {
-      transition: transform 1s;
     }
 </style>
