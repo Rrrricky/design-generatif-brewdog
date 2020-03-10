@@ -8,12 +8,12 @@
           ref="canvas"
           class="main-canvas"
         />
-
-        -->
         <div class="cursors">
             <Sliders :beerSpecs="beerSpecs"/>
             <Dialog :selectedBeers="selectedBeers" @find-beer="findBeer" />
         </div>
+
+        -->
         <div class="board" ref="board">
             <section class="introduction">
                 <div class="introduction-text">
@@ -36,12 +36,12 @@
                     </div>
                 </div>
                 <vue-p5
-                  @setup="setupCard"
-                  @draw="drawCard"
+                  @setup="setup"
+                  @draw="draw"
                   class="beer-canvas"
                 />
                 <transition-group name="flip-list" class="beers" tag="div" ref="card" v-if="beers.length">
-                    <article @click="generateDesign(index)" class="beer-card" v-for="({ name, tagline, target_fg, ph, abv, ibu, image_url }, index) of beers" :key="name" ref="card">
+                    <article @click="generateDesign(name, $event)" class="beer-card" v-for="({ name, tagline, target_fg, ph, abv, ibu, image_url, customColor }, index) of beers" :key="name" ref="card">
                         <div class="beer-name">{{ name }}</div>
                         <div class="beer-description">{{ tagline }}</div>
                         <ul class="beer-proportions">
@@ -49,7 +49,7 @@
                             <li>Acidity: {{ ph }}</li>
                             <li>Alcohol: {{ abv }}%</li>
                             <li>Bitter: {{ ibu }} IBU</li>
-                            <!-- <li><img class="beer-pic" width="70" :src="image_url" alt="" crossOrigin="anonymous"></li> -->
+                            <li><img class="beer-pic" width="70" :src="image_url" alt="" crossOrigin="anonymous"></li>
                         </ul>
                     </article>
                 </transition-group>
@@ -58,46 +58,12 @@
     </div>
 </template>
 
-<script lang="ts">
+<script>
 import VueP5 from 'vue-p5';
 import Vue from 'vue';
 import Sliders from './Sliders.vue';
 import Dialog from './Dialog.vue';
 import * as Vibrant from 'node-vibrant';
-
-interface Options {
-    createCanvas: (arg0: number, arg1: number, arg2?: any) => void;
-    noStroke: () => void;
-    fill: (...args: number[]) => void;
-    rect: (...args: number[]) => void;
-    angleMode: (...args: number[]) => void;
-    color: (...args: any) => number;
-    DEGREES: any;
-    noLoop: () => void;
-    redraw: () => void;
-    clear: () => void;
-    createButton: (arg0: string) => void;
-    button: any;
-    abs: (arg0: number) => number;
-    random: (arg0: number, arg1: number) => number;
-    rotate: (arg0: number) => void;
-    PI: number;
-    background: (arg0: number) => number;
-    noise: (arg0: number, arg1: number, arg2: number) => number;
-    frameCount: number;
-    torus: (...args: number[]) => void;
-    rotateY: (...args: number[]) => void;
-    pointLight: (...args: number[]) => void;
-    width: number;
-    height: number;
-    camera: (...args: number[]) => void;
-    map: (...args: number[]) => number;
-    mouseX: number;
-    ambientMaterial: (...args: number[]) => void;
-    WEBGL: any;
-    stroke: (arg0: number) => void;
-    noFill: () => void;
-}
 
 export default Vue.extend({
   name: 'Canvas',
@@ -108,7 +74,6 @@ export default Vue.extend({
   },
   data() {
       return {
-        _: (this as any),
         ingredientSelected: '',
         sketchSaved: {},
         sketchSavedCard: {},
@@ -118,8 +83,8 @@ export default Vue.extend({
         beers: [],
         bitters: [],
         alert: false,
-        mainColor: '',
-        beersColors: [],
+        activeBeer: null,
+        mainColor: null,
         beerHover: null,
         beerSpecs: {
             alcohol: {
@@ -196,164 +161,116 @@ export default Vue.extend({
         canvasBackground: '#faaaaa'
       };
   },
-  mounted() {
-      const _ = (this as any);
-
+  created() {
       fetch('https://api.punkapi.com/v2/beers')
-        .then((data) => data.json())
-        .then((res) => {
-            _.beers = res;
-            _.giveColor();
-            _.beerChoice = _.beers[0];
+        .then(data => data.json())
+        .then(res => {
+            this.beers = res;
+            this.hydrateBeers(); // Give color from pic to json
+            this.activeBeer = this.beers[0];
         });
+  },
 
+  mounted() {
       window.addEventListener('resize', () => {
-          _.result(_.sketchSaved);
+          this.result(this.sketchSaved);
       });
   },
-  updated(): void {
-      const _ = (this as any);
-
-      _.beers.map((beer: { ibu: number; }) => {
-          _.bitters.push(beer.ibu);
+    /*
+  updated() {
+      this.beers.map((beer: { ibu }) => {
+          this.bitters.push(beer.ibu);
       });
   },
+  */
 
+    /*
   computed: {
     alcoholAmount() {
-        return (this as any).beerSpecs.alcohol.sliderValues.value;
+        return this.beerSpecs.alcohol.sliderValues.value;
     },
   },
 
   watch: {
     alcoholAmount(value) {
-        (this as any).$refs.canvas.$el.style.filter = `blur(${(value / 10) ** 2}px)`;
+        this.$refs.canvas.$el.style.filter = `blur(${(value / 10) ** 2}px)`;
     },
   },
+     */
 
   methods: {
-      generateDesign(index: number) {
-          const _ = (this as any);
-          _.beerChoice = _.beers[index];
-          _.canvasBackground = _.beersColors[index]
-          _.drawCard(_.sketchSavedCard)
+      generateDesign(name) {
+          this.activeBeer = this.beers.find(beer => beer.name.includes(name));
+          this.canvasBackground = this.activeBeer.customColor;
+          this.draw(this.sketchSavedCard);
       },
-      giveColor() {
-          const _ = (this as any);
-          for (const { image_url } of _.beers) {
-              const v = new Vibrant(image_url);
-              v.getPalette().then((palette: { Vibrant: { hex: string; }; }) => {
-                  _.mainColor = palette.Vibrant.hex;
-                  if (!(_.beersColors.includes(_.mainColor))) { _.beersColors.push(_.mainColor); }
+
+      hydrateBeers() {
+          for (const beer of this.beers) {
+              const v = new Vibrant(beer.image_url);
+              v.getPalette().then(palette => {
+                this.mainColor = palette.Vibrant.hsl;
+                beer.customColor = this.mainColor;
               });
           }
       },
 
-      setupCard(sketch: Options) {
-          (this as any).sketchSavedCard = sketch;
-          // @ts-ignore
+      setup(sketch) {
+          this.sketchSavedCard = sketch;
           sketch.createCanvas(window.innerWidth, this.$refs.board.offsetHeight);
+          sketch.rectMode(sketch.CENTER);
           sketch.noLoop();
       },
 
-      drawCard(sketch: Options) {
-          const _ = (this as any);
-          if (_.beerChoice !== null) {
+      draw(sketch) {
+          if (this.activeBeer !== null) {
               sketch.background(sketch.color('#fcfcfc'));
-              sketch.stroke(_.canvasBackground);
-              const color = sketch.color(`hsb(44, ${_.beerChoice.ibu}%, 97%)`);
-              sketch.fill(color, 100);
-              for (let i = 0; i < window.innerWidth; i += 5) { // col
-                  for (let j = 0; j < window.innerHeight / 2; j += 5) { // row
-                      sketch.rotate(sketch.PI / 3.0 + i);
-                      //@ts-ignore
-                      sketch.triangle(
-                        i + 10,
-                        j + 10,
-                        i + 50,
-                        j + 50,
-                        i + 90,
-                        i + 10,
+              // sketch.stroke(_.canvasBackground);
+              // sketch.strokeWeight(5);
+              sketch.noStroke();
+              sketch.colorMode(sketch.HSL, 1);
+              const hue = this.canvasBackground[0];
+              const saturation = this.canvasBackground[1];
+              const light = this.canvasBackground[2];
+
+              // const color = sketch.color(`hsl(${_.canvasBackground[0]}, ${_.canvasBackground[1]}, ${_.canvasBackground[2]}`);
+              sketch.push()
+              sketch.scale(this.convertRange(this.activeBeer.target_fg, 1000, 1030, .5, 6));
+              for (let i = 0; i < window.innerWidth; i += 60) { // col
+                  for (let j = 0; j < window.innerHeight ; j += 60) { // row
+                      sketch.push();
+                      sketch.translate(i + 10, j - 10);
+                      sketch.rotate(sketch.PI / 4);
+                      sketch.fill(sketch.random(1), saturation, light);
+                      sketch.rect(
+                        0,
+                        0,
+                        // j - 10 + (sketch.noise(j / 10, 0, sketch.frameCount * 0.002) * 2 - 1) * 30, // posy
+                        50,
+                        // 1080 - this.activeBeer.target_fg, // width
+                        50, // height
+                        sketch.abs(this.activeBeer.ph - 3) * 10, // radius
                       );
+                      sketch.pop();
                   }
               }
+              sketch.pop()
           }
       },
-
-      setup(sketch: Options) {
-          (this as any).sketchSaved = sketch;
-          sketch.createCanvas(window.innerWidth, window.innerHeight / 2, sketch.WEBGL);
-          sketch.angleMode(sketch.DEGREES);
-      },
-
-      draw(sketch: Options) {
-          const _ = (this as any);
-          const { value: sugarValue, min: sugarMin, max: sugarMax } = _.beerSpecs.sugar.sliderValues;
-          const { value: acidityValue, min: acidityMin, max: acidityMax } = _.beerSpecs.acidity.sliderValues;
-          sketch.background(sketch.color('#171717'));
-          sketch.noFill();
-          sketch.stroke(255);
-          const mouseX = sketch.map(sketch.mouseX, 0, sketch.width, -150, 150);
-          const camx = sketch.random(0, _.convertRange(sugarValue, sugarMin, sugarMax, 0, 12));
-          const camy = sketch.random(0, _.convertRange(sugarValue, sugarMin, sugarMax, 0, 12));
-          const camz = sketch.random(0, _.convertRange(sugarValue, sugarMin, sugarMax, 0, 12));
-          sketch.camera(mouseX, camy, camz + sketch.height / 2, camx, camy, camz, 0, 1, 0);
-          sketch.rotateY(sketch.frameCount * .3);
-
-          let k = 0;
-          sketch.torus(30, 15, Math.floor(_.convertRange(acidityValue, acidityMin, acidityMax, 24, 3)), 12);
-          if (k < _.beersColors.length - 1) { k++; }
-             // }
-          // }
-      },
-      convertRange(oldValue: number, oldMin: number, oldMax: number, newMin = 0, newMax = 100) {
+      convertRange(oldValue, oldMin, oldMax, newMin = 0, newMax = 100) {
           return ((oldValue - oldMin) / (oldMax - oldMin) ) * (newMax - newMin) + newMin;
       },
-      result(sketchSaved: any) {
+      result(sketchSaved) {
           sketchSaved.clear();
           sketchSaved.createCanvas(window.innerWidth, window.innerHeight / 2);
           sketchSaved.canvas.style.width = '100%';
           sketchSaved.redraw();
       },
-      findBeer() {
-          const _ = (this as any);
-          const { alcohol, sugar, acidity, bitter } = _.beerSpecs;
-          const { value: abvSlider } =  alcohol.sliderValues;
-          const { value: sugarSlider } = sugar.sliderValues;
-          const { value: aciditySlider } = acidity.sliderValues;
-          const { value: bitterSlider } = bitter.sliderValues;
-
-          // Filter by abv
-          let beerResult = _.beers
-            // tslint:disable-next-line:max-line-length
-            .filter((beer: { abv: number; }) => beer.abv > abvSlider - 2 && beer.abv < abvSlider + 2);
-
-          // Then filter by fg
-          if (beerResult.length > 1) {
-              // tslint:disable-next-line:max-line-length
-              beerResult = beerResult.filter((beer: { target_fg: number; }) => beer.target_fg > sugarSlider  - 30 && beer.target_fg < sugarSlider + 30);
-          }
-
-          // Then filter by pH
-          if (beerResult.length > 1) {
-              // tslint:disable-next-line:max-line-length
-              beerResult = beerResult.filter((beer: { ph: number; }) => beer.ph > aciditySlider - 1 && beer.ph < aciditySlider + 2);
-          }
-
-          // Then filter by bitter
-          if (beerResult.length > 1) {
-              // tslint:disable-next-line:max-line-length
-              beerResult = beerResult.filter((beer: { ibu: number; }) => beer.ibu > bitterSlider - 25 && beer.ibu < bitterSlider + 25);
-          }
-          // tslint:disable-next-line:max-line-length
-          beerResult.length === 0 ? _.selectedBeers = 'This kinda beer would be messed up... Try something else!' : _.selectedBeers = beerResult;
-      },
-      sortedBeers(value: string) {
-          const _ = (this as any);
-          _.ingredientSelected = value.toLowerCase();
-          const ingredient = _.ingredientSelected;
-          const { unit } = _.beerSpecs[ingredient];
-          _.beers.sort((a: [number], b: [number]) => unit === 'ph' ? a[unit] - b[unit] : b[unit] - a[unit]);
+      sortedBeers(value) {
+          this.ingredientSelected = value.toLowerCase();
+          const ingredient = this.ingredientSelected;
+          const { unit } = this.beerSpecs[ingredient];
+          this.beers.sort((a, b) => unit === 'ph' ? a[unit] - b[unit] : b[unit] - a[unit]);
       },
   },
   render(h) {
@@ -379,7 +296,6 @@ export default Vue.extend({
             z-index: -1;
             top: 0;
             left: 0;
-            opacity: .3;
         }
 
         .introduction-title {
@@ -415,7 +331,7 @@ export default Vue.extend({
         font-size: 17px;
         flex: 1 1 25%;
         overflow: hidden;
-        background: rgba(255, 255, 255, .5);
+        background: $alabaster;
 
         .beer-name {
             cursor: pointer;
