@@ -39,6 +39,7 @@
                   @setup="setup"
                   @draw="draw"
                   class="beer-canvas"
+                  ref="beerCanvas"
                 />
                 <transition-group name="flip-list" class="beers" tag="div" ref="card" v-if="beers.length">
                     <article @click="generateDesign(name, $event)" class="beer-card" v-for="({ name, tagline, target_fg, ph, abv, ibu, image_url, customColor }, index) of beers" :key="name" ref="card">
@@ -49,7 +50,7 @@
                             <li>Acidity: {{ ph }}</li>
                             <li>Alcohol: {{ abv }}%</li>
                             <li>Bitter: {{ ibu }} IBU</li>
-                            <li><img class="beer-pic" width="70" :src="image_url" alt="" crossOrigin="anonymous"></li>
+                            <!-- <li><img class="beer-pic" width="70" :src="image_url" alt="" crossOrigin="anonymous"></li> -->
                         </ul>
                     </article>
                 </transition-group>
@@ -203,6 +204,7 @@ export default Vue.extend({
           this.activeBeer = this.beers.find(beer => beer.name.includes(name));
           this.canvasBackground = this.activeBeer.customColor;
           this.draw(this.sketchSavedCard);
+          this.$refs.beerCanvas.$el.style.filter = `blur(${(this.activeBeer.abv / 10) ** 2}px)`;
       },
 
       hydrateBeers() {
@@ -224,30 +226,38 @@ export default Vue.extend({
 
       draw(sketch) {
           if (this.activeBeer !== null) {
-              sketch.background(sketch.color('#fcfcfc'));
-              // sketch.stroke(_.canvasBackground);
-              // sketch.strokeWeight(5);
+              sketch.background(sketch.color('#010101'));
               sketch.noStroke();
               sketch.colorMode(sketch.HSL, 1);
               const hue = this.canvasBackground[0];
               const saturation = this.canvasBackground[1];
               const light = this.canvasBackground[2];
 
-              // const color = sketch.color(`hsl(${_.canvasBackground[0]}, ${_.canvasBackground[1]}, ${_.canvasBackground[2]}`);
               sketch.push()
-              sketch.scale(this.convertRange(this.activeBeer.target_fg, 1000, 1030, .5, 6));
+              const intervalSaturation = this.convertRange(this.activeBeer.ibu, 8, 150, 0, saturation);
+              const intervalLight = this.convertRange(this.activeBeer.ibu, 8, 150, 0, light);
+              const arrSat = [];
+              const arrLight = [];
+              const randomSaturation = null
+              const randomLight = null
+
+              for(let i = 0; i < 5; i++) {
+                  const randomSaturation = sketch.random(saturation - intervalSaturation, 1);
+                  arrSat.push(randomSaturation);
+                  const randomLight = sketch.random(light - intervalLight, 1);
+                  arrLight.push(randomLight);
+              }
+              sketch.scale(this.convertRange(this.activeBeer.target_fg, 1000, 1030, 1, 3));
               for (let i = 0; i < window.innerWidth; i += 60) { // col
                   for (let j = 0; j < window.innerHeight ; j += 60) { // row
                       sketch.push();
                       sketch.translate(i + 10, j - 10);
                       sketch.rotate(sketch.PI / 4);
-                      sketch.fill(sketch.random(1), saturation, light);
+                      sketch.fill(hue, arrSat[sketch.int(sketch.random(5))], arrLight[sketch.int(sketch.random(5))], .5);
                       sketch.rect(
                         0,
                         0,
-                        // j - 10 + (sketch.noise(j / 10, 0, sketch.frameCount * 0.002) * 2 - 1) * 30, // posy
                         50,
-                        // 1080 - this.activeBeer.target_fg, // width
                         50, // height
                         sketch.abs(this.activeBeer.ph - 3) * 10, // radius
                       );
