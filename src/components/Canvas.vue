@@ -39,7 +39,6 @@
                             <li>Acidity: {{ ph }}</li>
                             <li>Alcohol: {{ abv }}%</li>
                             <li>Bitter: {{ ibu }} IBU</li>
-                            <li><img class="beer-pic" width="70" :src="image_url" alt="" crossOrigin="anonymous"></li>
                         </ul>
                     </article>
                 </transition-group>
@@ -75,7 +74,7 @@ interface Options {
     background: (arg0: number) => number;
     noise: (arg0: number, arg1: number, arg2: number) => number;
     frameCount: number;
-    torus: (...args: number[]) => void;
+    sphere: (...args: number[]) => void;
     rotateY: (...args: number[]) => void;
     pointLight: (...args: number[]) => void;
     width: number;
@@ -83,10 +82,12 @@ interface Options {
     camera: (...args: number[]) => void;
     map: (...args: number[]) => number;
     mouseX: number;
+    mouseY: number;
     ambientMaterial: (...args: number[]) => void;
     WEBGL: any;
     stroke: (arg0: number) => void;
     noFill: () => void;
+    scale: (arg0: number) => void;
 }
 
 export default Vue.extend({
@@ -229,7 +230,6 @@ export default Vue.extend({
       setup(sketch: Options) {
           (this as any).sketchSaved = sketch;
           sketch.createCanvas(window.innerWidth, window.innerHeight / 2, sketch.WEBGL);
-          // sketch.noStroke(); // No outline stroke
           sketch.angleMode(sketch.DEGREES);
       },
 
@@ -238,45 +238,22 @@ export default Vue.extend({
           const _ = (this as any);
           const { value: sugarValue, min: sugarMin, max: sugarMax } = _.beerSpecs.sugar.sliderValues;
           const { value: acidityValue, min: acidityMin, max: acidityMax } = _.beerSpecs.acidity.sliderValues;
+          // const { value: bitterValue, min: bitterMin, max: bitterMax } = _.beerSpecs.acidity.sliderValues;
           sketch.background(sketch.color('#171717'));
-          // sketch.pointLight(255, 255, 255, 0, -200, 200);
-          // sketch.ambientMaterial(255);
           sketch.noFill();
-          sketch.stroke(255);
+          sketch.stroke(120);
           const mouseX = sketch.map(sketch.mouseX, 0, sketch.width, -150, 150);
+          const mouseY = sketch.map(sketch.mouseY, 0, sketch.height, -150, 150);
           const camx = sketch.random(0, _.convertRange(sugarValue, sugarMin, sugarMax, 0, 12));
           const camy = sketch.random(0, _.convertRange(sugarValue, sugarMin, sugarMax, 0, 12));
           const camz = sketch.random(0, _.convertRange(sugarValue, sugarMin, sugarMax, 0, 12));
-          sketch.camera(mouseX, camy, camz + sketch.height / 2, camx, camy, camz, 0, 1, 0);
+          sketch.camera(mouseX, mouseY, camz + sketch.height / 2, camx, camy, camz, 0, 1, 0);
+          sketch.scale(10);
           sketch.rotateY(sketch.frameCount * .3);
-
-          // const color = sketch.color(`hsb(44, ${_.beerSpecs.bitter.sliderValues.value}%, 97%)`);
-          let k = 0;
-          // for (let i = -window.innerWidth; i < window.innerWidth; i += 100) { // col
-            //  for (let j = 0; j < window.innerHeight / 2; j += 100) { // row
-                  // sketch.translate(i, j - 100 + (sketch.noise(j / 10, 0, sketch.frameCount * .002) * 2 - 1) * 30, 0)
-          sketch.torus(30, 15, Math.floor(_.convertRange(acidityValue, acidityMin, acidityMax, 24, 3)), 12);
-
-                  // sketch.fill(_.beersColors[k])
-                  // sketch.rotate(sketch.PI / 3.0);
-                  /*
-                  sketch.rect(
-                    i + 10, // posx
-                    j - 10 + (sketch.noise(j / 10, 0, sketch.frameCount * _.convertRange(sugarValue, sugarMin, sugarMax, .002, .010)) * 2 - 1) * 30, // posy
-                    _.convertRange(sugarValue, sugarMin, sugarMax, 5, 80), // width
-                    50, // height
-                    _.convertRange(acidityValue, acidityMin, acidityMax, 30, 0), // radius
-                  );
-                   */
-          if (k < _.beersColors.length - 1) { k++; }
-             // }
-          // }
+          sketch.sphere(30, 15, Math.floor(_.convertRange(acidityValue, acidityMin, acidityMax, 24, 3)), 12);
       },
       convertRange(oldValue: number, oldMin: number, oldMax: number, newMin = 0, newMax = 100) {
           return ((oldValue - oldMin) / (oldMax - oldMin) ) * (newMax - newMin) + newMin;
-      },
-      randomizer(arr: [string]) {
-          return arr[Math.floor((Math.random() * arr.length))];
       },
       result(sketchSaved: any) {
           sketchSaved.clear();
@@ -290,7 +267,7 @@ export default Vue.extend({
           const { value: abvSlider } =  alcohol.sliderValues;
           const { value: sugarSlider } = sugar.sliderValues;
           const { value: aciditySlider } = acidity.sliderValues;
-          const { value: bitterSlider } = bitter.sliderValues;
+          // const { value: bitterSlider } = bitter.sliderValues;
 
           // Filter by abv
           let beerResult = _.beers
@@ -307,12 +284,6 @@ export default Vue.extend({
           if (beerResult.length > 1) {
               // tslint:disable-next-line:max-line-length
               beerResult = beerResult.filter((beer: { ph: number; }) => beer.ph > aciditySlider - 1 && beer.ph < aciditySlider + 2);
-          }
-
-          // Then filter by bitter
-          if (beerResult.length > 1) {
-              // tslint:disable-next-line:max-line-length
-              beerResult = beerResult.filter((beer: { ibu: number; }) => beer.ibu > bitterSlider - 25 && beer.ibu < bitterSlider + 25);
           }
           // tslint:disable-next-line:max-line-length
           beerResult.length === 0 ? _.selectedBeers = 'This kinda beer would be messed up... Try something else!' : _.selectedBeers = beerResult;
@@ -372,7 +343,6 @@ export default Vue.extend({
         flex: 1 1 25%;
 
         .beer-name {
-            cursor: pointer;
             font-weight: bold;
             font-size: 12px;
         }
@@ -380,6 +350,11 @@ export default Vue.extend({
         .beer-description {
             font-size: .6em;
             color: $silver-chalice;
+        }
+
+        ul {
+            font-size: 1.2rem;
+            margin-top: 1em;
         }
     }
 
