@@ -1,60 +1,48 @@
 <template>
     <div>
-        <!--
-
-        <vue-p5
-          @setup="setup"
-          @draw="draw"
-          ref="canvas"
-          class="main-canvas"
-        />
-        <div class="cursors">
-            <Sliders :beerSpecs="beerSpecs"/>
-            <Dialog :selectedBeers="selectedBeers" @find-beer="findBeer" />
-        </div>
-
-        -->
-        <div class="board" ref="board">
-            <section class="introduction">
+        <div id="page">
+            <section class="introduction-wrapper" ref="introductionWrapper">
                 <div class="introduction-text">
                     <h1 class="text-h1 introduction-title">BrewDog generator</h1>
                     <p class="introduction-description text-weight-light">
-                        A decade ago there was a revolution. A beer revolution.
-                        Punk IPA is the beer that kick-started it. This light,
-                        golden classic has been subverted with new world hops to
-                        create an explosion of flavour. Bursts of caramel and tropical
-                        fruit with an all-out riot of grapefruit, pineapple and lychee,
-                        precede a spiky bitter finish. This is the beer that started it
-                        all - and it’s not done yet....
+                        Il y a dix ans, il y a eu une révolution. Une révolution de la bière.
+                        La Punk IPA est la bière qui a donné le coup d'envoi de cette révolution.
+                    </p>
+                    <h2 class="text-h2 introduction-subtitle">Instructions</h2>
+                    <p class="introduction-description text-weight-light">
+                        Par un simple clic sur vos bières préférées, découvrez les packaging expérimentaux générés par 3 étudiants.
+                        Ces packaging sont automatiquement créés selon les particularités de chaque bière : la quantité d'alcool, la
+                        quantité de sucre, l'amertume, et l'acidité.
                     </p>
                 </div>
             </section>
-            <section class="listBeers">
-                <div class="q-pa-md dropdown-sort" style="max-width: 300px">
-                    <div class="q-gutter-md">
-                        <q-select v-model="model" :options="options" label="Sort by:" @input="sortedBeers(model)" />
+            <div class="board" ref="board">
+                <section class="listBeers">
+                    <vue-p5
+                      @setup="setup"
+                      @draw="draw"
+                      class="beer-canvas"
+                      ref="beerCanvas"
+                    />
+                    <div class="q-pa-md dropdown-sort" style="max-width: 300px">
+                        <div class="q-gutter-md">
+                            <q-select v-model="model" :options="options" label="Sort by:" @input="sortedBeers(model)" />
+                        </div>
                     </div>
-                </div>
-                <vue-p5
-                  @setup="setup"
-                  @draw="draw"
-                  class="beer-canvas"
-                  ref="beerCanvas"
-                />
-                <transition-group name="flip-list" class="beers" tag="div" ref="card" v-if="beers.length">
-                    <article @click="generateDesign(name, $event)" class="beer-card" v-for="({ name, tagline, target_fg, ph, abv, ibu, image_url, customColor }, index) of beers" :key="name" ref="card">
-                        <div class="beer-name">{{ name }}</div>
-                        <div class="beer-description">{{ tagline }}</div>
-                        <ul class="beer-proportions">
-                            <li>Sugar: {{ target_fg }}</li>
-                            <li>Acidity: {{ ph }}</li>
-                            <li>Alcohol: {{ abv }}%</li>
-                            <li>Bitter: {{ ibu }} IBU</li>
-                            <!-- <li><img class="beer-pic" width="70" :src="image_url" alt="" crossOrigin="anonymous"></li> -->
-                        </ul>
-                    </article>
-                </transition-group>
-            </section>
+                    <transition-group name="flip-list" class="beers" tag="div" ref="cards" v-if="beers.length">
+                        <article @click="generateDesign(name, $event)" class="beer-card" v-for="({ name, tagline, target_fg, ph, abv, ibu, image_url, customColor }, index) of beers" :key="name" ref="card">
+                            <div class="beer-name">{{ name }}</div>
+                            <div class="beer-description">{{ tagline }}</div>
+                            <ul class="beer-proportions">
+                                <li>Sugar: {{ target_fg }}</li>
+                                <li>Acidity: {{ ph }}</li>
+                                <li>Alcohol: {{ abv }}%</li>
+                                <li>Bitter: {{ ibu }} IBU</li>
+                            </ul>
+                        </article>
+                    </transition-group>
+                </section>
+            </div>
         </div>
     </div>
 </template>
@@ -62,21 +50,16 @@
 <script>
 import VueP5 from 'vue-p5';
 import Vue from 'vue';
-import Sliders from './Sliders.vue';
-import Dialog from './Dialog.vue';
 import * as Vibrant from 'node-vibrant';
 
 export default Vue.extend({
   name: 'Canvas',
   components: {
     'vue-p5': VueP5,
-    Sliders,
-    Dialog,
   },
   data() {
       return {
         ingredientSelected: '',
-        sketchSaved: {},
         sketchSavedCard: {},
         cardIndex: 0,
         width: 300,
@@ -174,30 +157,9 @@ export default Vue.extend({
 
   mounted() {
       window.addEventListener('resize', () => {
-          this.result(this.sketchSaved);
+          this.result(this.sketchSavedCard);
       });
   },
-    /*
-  updated() {
-      this.beers.map((beer: { ibu }) => {
-          this.bitters.push(beer.ibu);
-      });
-  },
-  */
-
-    /*
-  computed: {
-    alcoholAmount() {
-        return this.beerSpecs.alcohol.sliderValues.value;
-    },
-  },
-
-  watch: {
-    alcoholAmount(value) {
-        this.$refs.canvas.$el.style.filter = `blur(${(value / 10) ** 2}px)`;
-    },
-  },
-     */
 
   methods: {
       generateDesign(name) {
@@ -238,8 +200,6 @@ export default Vue.extend({
               const intervalLight = this.convertRange(this.activeBeer.ibu, 8, 150, 0, light);
               const arrSat = [];
               const arrLight = [];
-              const randomSaturation = null
-              const randomLight = null
 
               for(let i = 0; i < 5; i++) {
                   const randomSaturation = sketch.random(saturation - intervalSaturation, 1);
@@ -270,11 +230,13 @@ export default Vue.extend({
       convertRange(oldValue, oldMin, oldMax, newMin = 0, newMax = 100) {
           return ((oldValue - oldMin) / (oldMax - oldMin) ) * (newMax - newMin) + newMin;
       },
-      result(sketchSaved) {
-          sketchSaved.clear();
-          sketchSaved.createCanvas(window.innerWidth, window.innerHeight / 2);
-          sketchSaved.canvas.style.width = '100%';
-          sketchSaved.redraw();
+      result(sketchSavedCard) {
+          if (this.activeBeer !== null) {
+              sketchSavedCard.clear();
+              sketchSavedCard.createCanvas(window.innerWidth, this.$refs.board.offsetHeight);
+              sketchSavedCard.canvas.style.width = '100%';
+              sketchSavedCard.redraw();
+          }
       },
       sortedBeers(value) {
           this.ingredientSelected = value.toLowerCase();
@@ -294,29 +256,55 @@ export default Vue.extend({
     @import '../styles/tools/mixins';
     @import '../styles/tools/variables';
 
+    section.introduction-wrapper {
+        position: fixed;
+        z-index: 1;
+        background: $alabaster;
+        width: 25vw;
+        min-width: min-content;
+        height: 100vh;
+        padding: 2em;
+        @include for-desktop-down {
+            width: 100vw;
+            position: relative;
+            height: unset;
+        }
+
+        .introduction-title, .introduction-subtitle {
+            font-family: $league;
+            text-transform: uppercase;
+            margin-bottom: 2rem;
+        }
+
+        .introduction-subtitle {
+            margin-top: 1em;
+        }
+
+        .introduction-description {
+            color: $silver-chalice;
+            line-height: 1.6;
+        }
+    }
+
     .board {
-        position: relative;
+        position: absolute;
+        right: 0;
+        top: 0;
+        width: 75vw;
         z-index: 0;
-        padding: 10rem 10vw;
+        padding: 0 7vw;
         background: $alabaster;
         color: $cod-gray;
+
+        @include for-desktop-down {
+            width: 100vw;
+        }
 
         .beer-canvas {
             position: fixed;
             z-index: -1;
             top: 0;
             left: 0;
-        }
-
-        .introduction-title {
-            font-family: $league;
-            text-transform: uppercase;
-            margin-bottom: 2rem;
-        }
-
-        .introduction-description {
-            color: $silver-chalice;
-            line-height: 1.6;
         }
     }
 
@@ -327,8 +315,16 @@ export default Vue.extend({
         justify-content: space-between;
         margin: 5rem 0;
 
+        @include for-desktop-down {
+            margin-top: 40rem;
+        }
+
         @include for-large-mobile-down {
-            margin: 7rem 0;
+            margin-top: 50rem;
+        }
+
+        @include for-medium-mobile-down {
+            margin-top: 60rem;
         }
     }
 
@@ -342,9 +338,9 @@ export default Vue.extend({
         flex: 1 1 25%;
         overflow: hidden;
         background: $alabaster;
+        cursor: pointer;
 
         .beer-name {
-            cursor: pointer;
             font-weight: bold;
             font-size: 12px;
         }
@@ -359,18 +355,16 @@ export default Vue.extend({
         }
     }
 
-    .cursors {
-        position: absolute;
-        top: 1rem;
-        right: 1rem;
-
-        @include for-tablet-down {
-            position: initial;
-            margin: 10vw;
-        }
-    }
-
     .flip-list-move {
       transition: transform 1s;
     }
+
+    .dropdown-sort {
+        background: $alabaster;
+
+        @include for-desktop-down {
+            display: none;
+        }
+    }
+
 </style>
